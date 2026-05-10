@@ -34,6 +34,7 @@ class ProductForm extends Component
     public $isEdit = false;
     public $storeId;
     public $categories;
+    public $existingImage;
 
     protected function rules()
     {
@@ -83,6 +84,7 @@ class ProductForm extends Component
             $this->subscription_days = $product->subscription_days;
             $this->description = $product->description;
             $this->is_active = $product->is_active;
+            $this->existingImage = $product->image;
         }
     }
 
@@ -104,7 +106,7 @@ class ProductForm extends Component
     {
         $this->validate();
 
-        $imagePath = $this->product?->image;
+        $imagePath = $this->existingImage;
 
         if ($this->image) {
             $imagePath = $this->image->store('products', 'public');
@@ -133,9 +135,11 @@ class ProductForm extends Component
 
         if ($this->isEdit) {
             Product::where('store_id', $this->storeId)->where('id', $this->productId)->update($data);
+            \App\Services\ActivityLogger::log('update', 'Memperbarui produk: ' . $this->name);
             session()->flash('message', 'Produk berhasil diupdate.');
         } else {
             Product::create($data);
+            \App\Services\ActivityLogger::log('create', 'Menambahkan produk baru: ' . $this->name);
             session()->flash('message', 'Produk berhasil ditambahkan.');
         }
 

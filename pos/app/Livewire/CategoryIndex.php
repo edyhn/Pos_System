@@ -26,8 +26,19 @@ class CategoryIndex extends Component
     public function delete($id)
     {
         $category = Category::where('store_id', $this->storeId)->findOrFail($id);
+        $name = $category->name;
         $category->delete();
+        \App\Services\ActivityLogger::log('delete', 'Menghapus kategori: ' . $name);
         session()->flash('message', 'Kategori berhasil dihapus.');
+    }
+
+    public function toggleActive($id)
+    {
+        $category = Category::where('store_id', $this->storeId)->findOrFail($id);
+        $category->update(['is_active' => !$category->is_active]);
+        $status = $category->is_active ? 'mengaktifkan' : 'menonaktifkan';
+        \App\Services\ActivityLogger::log('update', $status . ' kategori: ' . $category->name);
+        session()->flash('message', 'Status kategori berhasil diubah.');
     }
 
     public function render()

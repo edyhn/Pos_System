@@ -11,6 +11,12 @@ class UserIndex extends Component
     use WithPagination;
 
     public $search = '';
+    public $storeId;
+
+    public function mount()
+    {
+        $this->storeId = auth()->user()->store_id;
+    }
 
     public function updatingSearch()
     {
@@ -19,13 +25,21 @@ class UserIndex extends Component
 
     public function toggleActive($id)
     {
-        $user = User::findOrFail($id);
+        $query = User::query();
+        if (auth()->user()->store_id) {
+            $query->where('store_id', auth()->user()->store_id);
+        }
+        $user = $query->findOrFail($id);
         $user->update(['is_active' => !$user->is_active]);
+        \App\Services\ActivityLogger::log('update', ($user->is_active ? 'Mengaktifkan' : 'Menonaktifkan') . ' pengguna: ' . $user->name);
     }
 
     public function render()
     {
         $query = User::with('store');
+        if ($this->storeId) {
+            $query->where('store_id', $this->storeId);
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

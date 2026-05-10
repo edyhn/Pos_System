@@ -4,19 +4,48 @@
     @if (session('message'))
         <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('message') }}</div>
     @endif
+    @if (session('error'))
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">{{ session('error') }}</div>
+    @endif
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6 max-w-lg">
         <h2 class="font-semibold text-gray-700 mb-3">Buat Request Refund Baru</h2>
         <div class="space-y-3">
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Pilih Transaksi</label>
-                <select wire:model="selectedTransaction" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <select wire:model.live="selectedTransaction" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
                     <option value="">Pilih Transaksi</option>
                     @foreach ($transactions as $t)
                         <option value="{{ $t->id }}">{{ $t->invoice_number }} - Rp {{ number_format($t->total_amount, 0, ',', '.') }}</option>
                     @endforeach
                 </select>
+                @error('selectedTransaction') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
+            @if($selectedTransaction && count($transactionItems) > 0)
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Pilih Item yang Diretur</label>
+                    <select wire:model.live="selectedItem" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <option value="">Pilih Item</option>
+                        @foreach ($transactionItems as $item)
+                            <option value="{{ $item['id'] }}">{{ $item['product_name'] }} ({{ $item['quantity'] }}x @ Rp {{ number_format($item['price'], 0, ',', '.') }})</option>
+                        @endforeach
+                    </select>
+                    @error('selectedItem') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Jumlah Refund</label>
+                    <input type="number" wire:model="refundAmount" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" min="0">
+                    @error('refundAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Tipe Refund</label>
+                    <select wire:model="refundType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                        <option value="uang_kembali">Uang Kembali</option>
+                        <option value="tukar_barang">Tukar Barang</option>
+                    </select>
+                    @error('refundType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            @endif
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Informasi Kondisi Barang</label>
                 <textarea wire:model="conditionInfo" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Jelaskan kondisi barang yang diretur..."></textarea>
@@ -32,6 +61,8 @@
             <thead>
                 <tr class="bg-gray-50 text-left text-sm text-gray-500">
                     <th class="px-4 py-3 font-medium">Invoice</th>
+                    <th class="px-4 py-3 font-medium">Tipe</th>
+                    <th class="px-4 py-3 font-medium">Jumlah</th>
                     <th class="px-4 py-3 font-medium">Kondisi</th>
                     <th class="px-4 py-3 font-medium">Tanggal</th>
                     <th class="px-4 py-3 font-medium">Status</th>
@@ -40,7 +71,9 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse ($myRequests as $req)
                     <tr class="hover:bg-gray-50 text-sm">
-                        <td class="px-4 py-3 text-gray-800">{{ $req->transaction->invoice_number }}</td>
+                        <td class="px-4 py-3 text-gray-800">{{ $req->transaction?->invoice_number ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $req->refund_type ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-800 font-medium">Rp {{ number_format($req->refund_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-gray-500 max-w-xs truncate">{{ $req->condition_info }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $req->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3">
@@ -53,7 +86,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Belum ada request.</td></tr>
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Belum ada request.</td></tr>
                 @endforelse
             </tbody>
         </table>

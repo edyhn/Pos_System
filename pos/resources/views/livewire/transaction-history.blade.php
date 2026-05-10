@@ -1,8 +1,18 @@
 <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">Riwayat Transaksi</h1>
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-800">Riwayat Transaksi</h1>
+        @auth
+            @if(auth()->user()->isOwner())
+                <div class="flex gap-2">
+                    <a href="{{ route('reports.sales.export-excel', request()->all()) }}" class="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">Excel</a>
+                    <a href="{{ route('reports.sales.export-pdf', request()->all()) }}" target="_blank" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm">PDF</a>
+                </div>
+            @endif
+        @endauth
+    </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4">
-        <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center gap-4">
             <input type="text" wire:model.live="search" placeholder="Cari invoice..." class="max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
             <div>
                 <label class="block text-xs text-gray-500">Dari</label>
@@ -34,7 +44,7 @@
                     <tr class="hover:bg-gray-50 text-sm">
                         <td class="px-4 py-3 font-mono font-medium text-gray-800">{{ $t->invoice_number }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $t->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $t->user->name }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $t->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $t->customer_name ?? '-' }}</td>
                         <td class="px-4 py-3"><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{{ $t->payment_method }}</span></td>
                         <td class="px-4 py-3">

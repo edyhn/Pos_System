@@ -6,7 +6,9 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PoItem;
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AutoDraftPurchaseOrder extends Command
@@ -29,13 +31,18 @@ class AutoDraftPurchaseOrder extends Command
                 continue;
             }
 
-            DB::transaction(function () use ($store, $lowStockProducts) {
-                $poNumber = 'PO-AUTO-' . date('Ymd') . '-' . str_pad(PurchaseOrder::whereDate('created_at', today())->count() + 1, 4, '0', STR_PAD_LEFT);
+            $lock = Cache::lock('po-auto-number-' . date('Ymd'), 10);
+            $lock->block(5);
+            $poNumber = 'PO-AUTO-' . date('Ymd') . '-' . str_pad(PurchaseOrder::whereDate('created_at', today())->where('store_id', $store->id)->count() + 1, 4, '0', STR_PAD_LEFT);
+            $lock->release();
+
+            DB::transaction(function () use ($store, $lowStockProducts, $poNumber) {
+                $owner = User::where('store_id', $store->id)->where('role', 'owner')->where('is_active', true)->first();
 
                 $po = PurchaseOrder::create([
                     'store_id' => $store->id,
                     'vendor_id' => null,
-                    'user_id' => 1,
+                    'user_id' => $owner?->id ?? 1,
                     'po_number' => $poNumber,
                     'status' => 'draft',
                     'is_auto_draft' => true,

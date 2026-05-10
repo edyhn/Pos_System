@@ -18,23 +18,20 @@ class PrintService
 
         $storeId = $transaction->store_id;
 
-        $printerType = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_type')
-            ->first()?->value;
+        $settings = StoreSetting::where('store_id', $storeId)
+            ->whereIn('key', ['printer_type', 'printer_address', 'printer_port'])
+            ->get()
+            ->keyBy('key');
 
-        $printerAddress = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_address')
-            ->first()?->value;
-
-        $printerPort = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_port')
-            ->first()?->value ?? 9100;
+        $printerType = $settings->get('printer_type')?->value;
+        $printerAddress = $settings->get('printer_address')?->value;
+        $printerPort = $settings->get('printer_port')?->value ?? '9100';
 
         try {
             $connector = match ($printerType) {
                 'network' => new NetworkPrintConnector($printerAddress, (int) $printerPort),
                 'usb' => new UsbPrintConnector(),
-                default => new NetworkPrintConnector('127.0.0.1', 9100),
+                default => throw new \Exception('Tipe printer tidak dikenal. Atur printer di Pengaturan Toko.'),
             };
 
             $printer = new Printer($connector);

@@ -24,7 +24,7 @@
             </div>
             <div>
                 <p class="text-xs text-gray-500">Kasir</p>
-                <p class="text-gray-800">{{ $transaction->user->name }}</p>
+                <p class="text-gray-800">{{ $transaction->user?->name ?? '-' }}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-500">Customer</p>

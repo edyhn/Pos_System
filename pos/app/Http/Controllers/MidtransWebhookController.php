@@ -9,6 +9,7 @@ use App\Models\StockMovement;
 use App\Models\Subscription;
 use App\Services\MidtransService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -52,45 +53,58 @@ class MidtransWebhookController extends Controller
 
             if ($transactionStatus === 'settlement' || $transactionStatus === 'capture') {
                 if ($fraudStatus === 'accept' || $fraudStatus === null) {
-                    DB::transaction(function () use ($transaction) {
-                        $transaction->update([
-                            'status' => 'completed',
-                            'payment_amount' => $transaction->total_amount,
-                            'change_amount' => 0,
-                        ]);
+                    $lock = Cache::lock('midtrans-' . $orderId, 10);
+                    if (!$lock->get()) {
+                        return response()->json(['status' => 'ok', 'message' => 'Already processing']);
+                    }
+                    try {
+                        DB::transaction(function () use ($transaction) {
+                            $transaction->update([
+                                'status' => 'completed',
+                                'payment_amount' => $transaction->total_amount,
+                                'change_amount' => 0,
+                            ]);
 
-                        foreach ($transaction->items as $item) {
-                            $product = Product::find($item->product_id);
-                            if ($product) {
-                                $product->decrement('stock', $item->quantity);
-
-                                StockMovement::create([
-                                    'store_id' => $transaction->store_id,
-                                    'product_id' => $item->product_id,
-                                    'user_id' => $transaction->user_id,
-                                    'reference_type' => 'transaction',
-                                    'reference_id' => $transaction->id,
-                                    'type' => 'out',
-                                    'quantity' => $item->quantity,
-                                    'note' => 'Penjualan Midtrans #' . $transaction->invoice_number,
-                                ]);
+                            if (!$transaction->items()->exists()) {
+                                Log::warning('Midtrans webhook: no items for transaction', ['order_id' => $orderId]);
+                                return;
                             }
 
-                            if ($product && $product->is_subscription) {
-                                Subscription::create([
-                                    'store_id' => $transaction->store_id,
-                                    'transaction_id' => $transaction->id,
-                                    'product_id' => $item->product_id,
-                                    'customer_identifier' => $transaction->customer_name,
-                                    'start_date' => now(),
-                                    'end_date' => now()->addDays($product->subscription_days),
-                                    'status' => 'active',
-                                ]);
-                            }
-                        }
-                    });
+                            foreach ($transaction->items as $item) {
+                                $product = Product::find($item->product_id);
+                                if ($product) {
+                                    $product->decrement('stock', $item->quantity);
 
-                    Log::info('Midtrans payment completed', ['order_id' => $orderId]);
+                                    StockMovement::create([
+                                        'store_id' => $transaction->store_id,
+                                        'product_id' => $item->product_id,
+                                        'user_id' => $transaction->user_id,
+                                        'reference_type' => 'transaction',
+                                        'reference_id' => $transaction->id,
+                                        'type' => 'out',
+                                        'quantity' => $item->quantity,
+                                        'note' => 'Penjualan Midtrans #' . $transaction->invoice_number,
+                                    ]);
+                                }
+
+                                if ($product && $product->is_subscription) {
+                                    Subscription::create([
+                                        'store_id' => $transaction->store_id,
+                                        'transaction_id' => $transaction->id,
+                                        'product_id' => $item->product_id,
+                                        'customer_identifier' => $transaction->customer_name,
+                                        'start_date' => now(),
+                                        'end_date' => now()->addDays($product->subscription_days),
+                                        'status' => 'active',
+                                    ]);
+                                }
+                            }
+                        });
+
+                        Log::info('Midtrans payment completed', ['order_id' => $orderId]);
+                    } finally {
+                        $lock->release();
+                    }
                 }
             } elseif (in_array($transactionStatus, ['deny', 'cancel', 'expire'])) {
                 $transaction->update(['status' => 'cancelled']);

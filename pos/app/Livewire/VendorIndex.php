@@ -26,7 +26,9 @@ class VendorIndex extends Component
     public function delete($id)
     {
         $vendor = Vendor::where('store_id', $this->storeId)->findOrFail($id);
+        $name = $vendor->name;
         $vendor->delete();
+        \App\Services\ActivityLogger::log('delete', 'Menghapus vendor: ' . $name);
         session()->flash('message', 'Vendor berhasil dihapus.');
     }
 

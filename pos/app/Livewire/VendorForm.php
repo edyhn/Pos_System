@@ -60,9 +60,11 @@ class VendorForm extends Component
 
         if ($this->isEdit) {
             Vendor::where('store_id', $this->storeId)->where('id', $this->vendorId)->update($data);
+            \App\Services\ActivityLogger::log('update', 'Memperbarui vendor: ' . $this->name);
             session()->flash('message', 'Vendor berhasil diupdate.');
         } else {
             Vendor::create($data);
+            \App\Services\ActivityLogger::log('create', 'Menambahkan vendor baru: ' . $this->name);
             session()->flash('message', 'Vendor berhasil ditambahkan.');
         }
 

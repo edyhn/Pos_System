@@ -16,6 +16,7 @@
                         <option value="{{ $t->id }}">{{ $t->invoice_number }} - Rp {{ number_format($t->total_amount, 0, ',', '.') }} ({{ $t->created_at->format('d/m/Y') }})</option>
                     @endforeach
                 </select>
+                @error('selectedTransaction') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
             <div>
                 <label class="block text-sm text-gray-600 mb-1">Alasan</label>
@@ -40,7 +41,7 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse ($myRequests as $req)
                     <tr class="hover:bg-gray-50 text-sm">
-                        <td class="px-4 py-3 text-gray-800">{{ $req->transaction->invoice_number }}</td>
+                        <td class="px-4 py-3 text-gray-800">{{ $req->transaction?->invoice_number ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $req->reason }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $req->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3">

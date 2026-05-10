@@ -12,13 +12,16 @@ class CategoryForm extends Component
     public $name;
     public $slug;
     public $description;
+    public $is_active = true;
 
+    public $storeId;
     public $isEdit = false;
 
     protected $rules = [
         'name' => 'required|min:2|max:255',
         'slug' => 'required|min:2|max:255',
         'description' => 'nullable',
+        'is_active' => 'boolean',
     ];
 
     public function mount($id = null)
@@ -32,6 +35,7 @@ class CategoryForm extends Component
             $this->name = $category->name;
             $this->slug = $category->slug;
             $this->description = $category->description;
+            $this->is_active = $category->is_active;
         }
     }
 
@@ -55,13 +59,16 @@ class CategoryForm extends Component
             'name' => $this->name,
             'slug' => $this->slug,
             'description' => $this->description,
+            'is_active' => $this->is_active,
         ];
 
         if ($this->isEdit) {
             Category::where('store_id', $this->storeId)->where('id', $this->categoryId)->update($data);
+            \App\Services\ActivityLogger::log('update', 'Memperbarui kategori: ' . $this->name);
             session()->flash('message', 'Kategori berhasil diupdate.');
         } else {
             Category::create($data);
+            \App\Services\ActivityLogger::log('create', 'Menambahkan kategori baru: ' . $this->name);
             session()->flash('message', 'Kategori berhasil ditambahkan.');
         }
 

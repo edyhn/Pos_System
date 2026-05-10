@@ -27,6 +27,7 @@ class SubscriptionCheck extends Component
             })
             ->with('product', 'transaction')
             ->orderBy('end_date', 'asc')
+            ->take(100)
             ->get();
     }
 

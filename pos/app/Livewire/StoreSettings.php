@@ -34,7 +34,11 @@ class StoreSettings extends Component
         }
 
         $this->storeId = $storeId;
-        $store = Store::findOrFail($storeId);
+        $store = Store::find($storeId);
+        if (!$store) {
+            session()->flash('error', 'Tidak ada toko yang ditemukan. Hubungi administrator.');
+            return;
+        }
         $this->name = $store->name;
         $this->code = $store->code;
         $this->phone = $store->phone;
@@ -42,16 +46,35 @@ class StoreSettings extends Component
         $this->receipt_footer = $store->receipt_footer;
         $this->existingQrisImage = $store->qris_image;
 
-        $this->printer_type = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_type')->first()?->value ?? 'network';
-        $this->printer_address = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_address')->first()?->value ?? '';
-        $this->printer_port = StoreSetting::where('store_id', $storeId)
-            ->where('key', 'printer_port')->first()?->value ?? '9100';
+        $settings = StoreSetting::where('store_id', $storeId)
+            ->whereIn('key', ['printer_type', 'printer_address', 'printer_port'])
+            ->get()
+            ->keyBy('key');
+
+        $this->printer_type = $settings->get('printer_type')?->value ?? 'network';
+        $this->printer_address = $settings->get('printer_address')?->value ?? '';
+        $this->printer_port = $settings->get('printer_port')?->value ?? '9100';
+    }
+
+    protected function rules()
+    {
+        return [
+            'name' => 'required|min:2|max:255',
+            'code' => 'nullable|max:50',
+            'phone' => 'nullable|max:20',
+            'address' => 'nullable',
+            'receipt_footer' => 'nullable|max:500',
+            'printer_type' => 'nullable|in:network,usb',
+            'printer_address' => 'nullable|ip',
+            'printer_port' => 'nullable|numeric|min:1|max:65535',
+            'qris_image' => 'nullable|image|max:2048',
+        ];
     }
 
     public function save()
     {
+        $this->validate();
+
         $data = [
             'name' => $this->name,
             'code' => $this->code,

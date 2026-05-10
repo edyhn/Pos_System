@@ -48,6 +48,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/tax', [App\Http\Controllers\ReportController::class, 'tax'])
         ->name('reports.tax')->middleware('role:owner');
 
+    Route::get('/forecast/sales', [App\Http\Controllers\ForecastController::class, 'sales'])
+        ->name('forecast.sales')->middleware('role:owner');
+    Route::get('/forecast/stock', [App\Http\Controllers\ForecastController::class, 'stock'])
+        ->name('forecast.stock')->middleware('role:owner');
+
     Route::get('/approvals/receipt', [App\Http\Controllers\ApprovalController::class, 'receipt'])
         ->name('approvals.receipt')->middleware('role:owner');
     Route::get('/approvals/refund', [App\Http\Controllers\ApprovalController::class, 'refund'])
@@ -59,12 +64,12 @@ Route::middleware('auth')->group(function () {
         ->name('activity-logs.index')->middleware('role:owner');
 
     Route::get('/transactions', [App\Http\Controllers\TransactionController::class, 'index'])
-        ->name('transactions.index');
+        ->name('transactions.index')->middleware('role:owner,cashier');
     Route::get('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'show'])
-        ->name('transactions.show');
+        ->name('transactions.show')->middleware('role:owner,cashier');
 
     Route::get('/subscriptions/check', [App\Http\Controllers\SubscriptionController::class, 'check'])
-        ->name('subscriptions.check');
+        ->name('subscriptions.check')->middleware('role:owner,cashier');
 
     Route::get('/requests/receipt', [App\Http\Controllers\RequestController::class, 'receipt'])
         ->name('requests.receipt')->middleware('role:cashier');
@@ -72,9 +77,9 @@ Route::middleware('auth')->group(function () {
         ->name('requests.refund')->middleware('role:cashier');
 
     Route::get('/print/receipt/{transaction}', [App\Http\Controllers\PrintController::class, 'receipt'])
-        ->name('print.receipt');
+        ->name('print.receipt')->middleware('role:owner,cashier');
     Route::get('/print/direct/{transaction}', [App\Http\Controllers\PrintController::class, 'directPrint'])
-        ->name('print.direct');
+        ->name('print.direct')->middleware('role:owner');
 
     Route::get('/reports/sales/export-excel', [App\Http\Controllers\ReportController::class, 'exportSalesExcel'])
         ->name('reports.sales.export-excel')->middleware('role:owner');

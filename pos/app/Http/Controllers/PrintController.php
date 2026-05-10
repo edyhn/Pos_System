@@ -10,12 +10,14 @@ class PrintController extends Controller
 {
     public function receipt(Transaction $transaction)
     {
+        abort_if($transaction->store_id !== auth()->user()->store_id, 403, 'Akses ditolak');
         $transaction->load('items', 'store', 'user');
         return view('print.receipt', compact('transaction'));
     }
 
     public function directPrint(Transaction $transaction)
     {
+        abort_if($transaction->store_id !== auth()->user()->store_id, 403, 'Akses ditolak');
         $transaction->load('items', 'store', 'user');
 
         if (!$transaction->store) {

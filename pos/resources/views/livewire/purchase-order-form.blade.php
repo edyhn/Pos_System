@@ -1,6 +1,6 @@
 <div>
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-800">Buat Purchase Order</h1>
+        <h1 class="text-2xl font-bold text-gray-800">{{ $isEdit ? 'Edit Purchase Order' : 'Buat Purchase Order' }}</h1>
         <a href="{{ route('purchase-orders.index') }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm">Kembali</a>
     </div>
 
@@ -51,7 +51,7 @@
                 @endif
             </div>
 
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">Simpan PO</button>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">{{ $isEdit ? 'Update PO' : 'Simpan PO' }}</button>
         </form>
     </div>
 </div>

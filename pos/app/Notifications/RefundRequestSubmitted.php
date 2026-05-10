@@ -17,7 +17,11 @@ class RefundRequestSubmitted extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        $channels = ['database'];
+        if (config('mail.mailers.smtp.host')) {
+            $channels[] = 'mail';
+        }
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage

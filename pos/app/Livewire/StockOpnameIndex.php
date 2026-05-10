@@ -96,6 +96,7 @@ class StockOpnameIndex extends Component
                 }
             }
 
+            \App\Services\ActivityLogger::log('create', 'Stock opname selesai: ' . $this->date);
             $this->showForm = false;
             session()->flash('message', 'Stock opname selesai.');
         });

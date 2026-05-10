@@ -16,6 +16,7 @@ class UserForm extends Component
     public $userId;
     public $user_id;
     public $name;
+    public $email;
     public $password;
     public $password_confirmation;
     public $phone;
@@ -32,6 +33,7 @@ class UserForm extends Component
     {
         $rules = [
             'name' => 'required|min:2|max:255',
+            'email' => 'nullable|email|max:255',
             'phone' => 'nullable|max:20',
             'role' => 'required|in:owner,cashier',
             'store_id' => 'nullable|exists:stores,id',
@@ -62,6 +64,7 @@ class UserForm extends Component
             $user = User::findOrFail($id);
             $this->user_id = $user->user_id;
             $this->name = $user->name;
+            $this->email = $user->email;
             $this->phone = $user->phone;
             $this->role = $user->role;
             $this->store_id = $user->store_id;
@@ -100,6 +103,7 @@ class UserForm extends Component
         $data = [
             'user_id' => $this->user_id,
             'name' => $this->name,
+            'email' => $this->email,
             'phone' => $this->phone,
             'role' => $this->role,
             'store_id' => $this->role === 'cashier' ? $this->store_id : null,
@@ -120,10 +124,12 @@ class UserForm extends Component
 
         if ($this->isEdit) {
             User::where('id', $this->userId)->update($data);
+            \App\Services\ActivityLogger::log('update', 'Memperbarui pengguna: ' . $this->name);
             session()->flash('message', 'Pengguna berhasil diupdate.');
         } else {
             $data['password'] ??= Hash::make($this->password);
             User::create($data);
+            \App\Services\ActivityLogger::log('create', 'Menambahkan pengguna baru: ' . $this->name . ' (' . $this->user_id . ')');
             session()->flash('message', 'Pengguna berhasil ditambahkan. ID: ' . $this->user_id);
         }
 

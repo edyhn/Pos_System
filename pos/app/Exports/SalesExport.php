@@ -22,11 +22,10 @@ class SalesExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        $query = Transaction::with('items', 'user')->where('status', 'completed');
-
-        if ($this->storeId) {
-            $query->where('store_id', $this->storeId);
-        }
+        $storeId = $this->storeId ?? auth()->user()->store_id;
+        $query = Transaction::with('items', 'user')
+            ->where('status', 'completed')
+            ->where('store_id', $storeId);
 
         if ($this->dateFrom) {
             $query->whereDate('created_at', '>=', $this->dateFrom);

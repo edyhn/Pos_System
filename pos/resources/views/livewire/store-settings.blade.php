@@ -10,24 +10,29 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Toko</label>
-                    <input type="text" wire:model="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <input type="text" wire:model="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('name') border-red-500 @enderror">
+                    @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kode Toko</label>
-                    <input type="text" wire:model="code" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <input type="text" wire:model="code" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('code') border-red-500 @enderror">
+                    @error('code') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Telepon</label>
-                    <input type="text" wire:model="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <input type="text" wire:model="phone" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('phone') border-red-500 @enderror">
+                    @error('phone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
-                    <textarea wire:model="address" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"></textarea>
+                    <textarea wire:model="address" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('address') border-red-500 @enderror"></textarea>
+                    @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Footer Struk</label>
-                <textarea wire:model="receipt_footer" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="Terima kasih telah berbelanja"></textarea>
+                <textarea wire:model="receipt_footer" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('receipt_footer') border-red-500 @enderror" placeholder="Terima kasih telah berbelanja"></textarea>
+                @error('receipt_footer') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
             </div>
 
             <hr class="my-4">
@@ -52,19 +57,22 @@
             <div class="grid grid-cols-2 gap-4">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tipe Printer</label>
-                    <select wire:model="printer_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <select wire:model="printer_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('printer_type') border-red-500 @enderror">
                         <option value="network">Network (IP)</option>
                         <option value="usb">USB</option>
                     </select>
+                    @error('printer_type') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Port</label>
-                    <input type="text" wire:model="printer_port" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="9100">
+                    <input type="text" wire:model="printer_port" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('printer_port') border-red-500 @enderror" placeholder="9100">
+                    @error('printer_port') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Printer (IP)</label>
-                <input type="text" wire:model="printer_address" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="192.168.1.100">
+                <input type="text" wire:model="printer_address" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm @error('printer_address') border-red-500 @enderror" placeholder="192.168.1.100">
+                @error('printer_address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 <p class="text-xs text-gray-400 mt-1">Kosongkan jika menggunakan printer USB.</p>
             </div>
 

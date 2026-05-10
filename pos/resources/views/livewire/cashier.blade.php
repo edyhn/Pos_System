@@ -1,12 +1,29 @@
 <div>
     <script>
+        let pendingPrintId = null;
+
         document.addEventListener('livewire:initialized', function () {
             Livewire.on('transactionCompleted', function (data) {
-                if (data.transactionId) {
-                    window.open('/print/receipt/' + data.transactionId, '_blank');
-                }
+                pendingPrintId = data.transactionId;
+                document.getElementById('printInvoice').textContent = data.invoiceNumber;
+                document.getElementById('printTotal').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(data.total);
+                document.getElementById('printPayment').textContent = data.paymentMethod;
+                document.getElementById('printCustomer').textContent = data.customerName || '-';
+                document.getElementById('printModal').classList.remove('hidden');
             });
         });
+
+        function confirmPrint() {
+            if (pendingPrintId) {
+                window.open('/print/receipt/' + pendingPrintId, '_blank');
+            }
+            closePrintModal();
+        }
+
+        function closePrintModal() {
+            document.getElementById('printModal').classList.add('hidden');
+            pendingPrintId = null;
+        }
     </script>
 
     <div class="flex gap-4 h-[calc(100vh-8rem)]">
@@ -119,29 +136,61 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('livewire:initialized', function () {
+            Livewire.on('midtransReady', function (data) {
+                if (data.token) {
+                    snap.pay(data.token, {
+                        onSuccess: function () {
+                            Livewire.dispatch('completeMidtransPayment');
+                        },
+                        onPending: function () {
+                            alert('Pembayaran sedang diproses. Silakan tunggu konfirmasi.');
+                        },
+                        onError: function () {
+                            alert('Pembayaran gagal. Silakan coba lagi.');
+                        },
+                        onClose: function () {
+                            // User closed popup
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+
     @if($payment_method === 'midtrans')
         <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
-        <script>
-            document.addEventListener('livewire:initialized', function () {
-                Livewire.on('midtransReady', function (data) {
-                    if (data.token) {
-                        snap.pay(data.token, {
-                            onSuccess: function () {
-                                Livewire.dispatch('completeMidtransPayment');
-                            },
-                            onPending: function () {
-                                alert('Pembayaran sedang diproses. Silakan tunggu konfirmasi.');
-                            },
-                            onError: function () {
-                                alert('Pembayaran gagal. Silakan coba lagi.');
-                            },
-                            onClose: function () {
-                                // User closed popup
-                            }
-                        });
-                    }
-                });
-            });
-        </script>
     @endif
+
+    <div id="printModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="fixed inset-0 bg-black/50" onclick="closePrintModal()"></div>
+        <div class="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-bold text-gray-800 mb-1">Transaksi Berhasil</h3>
+            <p class="text-xs text-gray-500 mb-4">Pastikan data sudah benar sebelum mencetak struk.</p>
+            <div class="space-y-2 text-sm bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Invoice</span>
+                    <span class="font-semibold text-gray-800" id="printInvoice"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Total</span>
+                    <span class="font-semibold text-gray-800" id="printTotal"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Pembayaran</span>
+                    <span class="font-semibold text-gray-800 capitalize" id="printPayment"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Customer</span>
+                    <span class="font-semibold text-gray-800" id="printCustomer"></span>
+                </div>
+            </div>
+            <p class="text-gray-700 mb-4 text-center font-medium">Cetak struk?</p>
+            <div class="flex gap-2">
+                <button onclick="confirmPrint()" class="flex-1 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition text-sm">Ya, Cetak</button>
+                <button onclick="closePrintModal()" class="flex-1 py-2.5 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition text-sm">Tidak</button>
+            </div>
+        </div>
+    </div>
 </div>

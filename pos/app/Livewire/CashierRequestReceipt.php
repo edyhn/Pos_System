@@ -25,29 +25,33 @@ class CashierRequestReceipt extends Component
 
     public function requestReprint()
     {
-        $this->validate([
-            'selectedTransaction' => 'required',
-            'reason' => 'required|min:5',
-        ]);
+        try {
+            $this->validate([
+                'selectedTransaction' => 'required',
+                'reason' => 'required|min:5',
+            ]);
 
-        $reprintRequest = ReceiptReprintRequest::create([
-            'store_id' => $this->storeId,
-            'transaction_id' => $this->selectedTransaction,
-            'user_id' => auth()->id(),
-            'status' => 'pending',
-            'reason' => $this->reason,
-        ]);
+            $reprintRequest = ReceiptReprintRequest::create([
+                'store_id' => $this->storeId,
+                'transaction_id' => $this->selectedTransaction,
+                'user_id' => auth()->id(),
+                'status' => 'pending',
+                'reason' => $this->reason,
+            ]);
 
-        $owners = \App\Models\User::where('store_id', $this->storeId)
-            ->where('role', 'owner')
-            ->where('is_active', true)
-            ->get();
+            $owners = \App\Models\User::where('store_id', $this->storeId)
+                ->where('role', 'owner')
+                ->where('is_active', true)
+                ->get();
 
-        Notification::send($owners, new ReceiptReprintRequested($reprintRequest));
+            Notification::send($owners, new ReceiptReprintRequested($reprintRequest));
 
-        session()->flash('message', 'Request cetak ulang dikirim ke owner.');
-        $this->selectedTransaction = null;
-        $this->reason = '';
+            session()->flash('message', 'Request cetak ulang dikirim ke owner.');
+            $this->selectedTransaction = null;
+            $this->reason = '';
+        } catch (\Exception $e) {
+            session()->flash('error', 'Gagal mengirim request: ' . $e->getMessage());
+        }
     }
 
     public function render()

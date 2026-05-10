@@ -24,9 +24,11 @@ class ReportController extends Controller
 
     public function exportSalesExcel(Request $request)
     {
+        $storeId = $request->store_id ?? auth()->user()->store_id;
+
         return Excel::download(
             new SalesExport(
-                $request->store_id,
+                $storeId,
                 $request->date_from,
                 $request->date_to
             ),
@@ -36,11 +38,10 @@ class ReportController extends Controller
 
     public function exportSalesPdf(Request $request)
     {
-        $query = Transaction::with('items', 'user')->where('status', 'completed');
-
-        if ($request->store_id) {
-            $query->where('store_id', $request->store_id);
-        }
+        $storeId = $request->store_id ?? auth()->user()->store_id;
+        $query = Transaction::with('items', 'user')
+            ->where('status', 'completed')
+            ->where('store_id', $storeId);
 
         if ($request->date_from) {
             $query->whereDate('created_at', '>=', $request->date_from);

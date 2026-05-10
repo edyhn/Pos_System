@@ -31,6 +31,29 @@
         </div>
     </div>
 
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4" wire:ignore>
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">Penjualan Per Hari</h2>
+        <canvas data-chart='{!! json_encode([
+            "type" => "line",
+            "data" => [
+                "labels" => $dailyChartData["labels"],
+                "datasets" => [[
+                    "label" => "Penjualan",
+                    "data" => $dailyChartData["values"],
+                    "borderColor" => "#3b82f6",
+                    "backgroundColor" => "rgba(59, 130, 246, 0.1)",
+                    "fill" => true,
+                    "tension" => 0.3
+                ]]
+            ],
+            "options" => [
+                "responsive" => true,
+                "plugins" => ["legend" => ["display" => false]],
+                "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
+            ]
+        ]) !!}'></canvas>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <p class="text-sm text-gray-500">Total Transaksi</p>
@@ -63,8 +86,8 @@
                     <tr class="hover:bg-gray-50 text-sm">
                         <td class="px-4 py-3 font-medium text-gray-800">{{ $t->invoice_number }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $t->created_at->format('d/m/Y H:i') }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $t->store->name }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $t->user->name }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $t->store?->name ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $t->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3"><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">{{ $t->payment_method }}</span></td>
                         <td class="px-4 py-3 text-right font-medium">Rp {{ number_format($t->total_amount, 0, ',', '.') }}</td>
                     </tr>

@@ -27,6 +27,9 @@ class TransactionHistory extends Component
         $this->resetPage();
     }
 
+    public function updatingDateFrom() { $this->resetPage(); }
+    public function updatingDateTo() { $this->resetPage(); }
+
     public function render()
     {
         $query = Transaction::when($this->storeId, fn($q) => $q->where('store_id', $this->storeId));

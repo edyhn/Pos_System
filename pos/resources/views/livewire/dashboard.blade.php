@@ -3,20 +3,32 @@
 
     @if($user->isOwner())
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Penjualan Hari Ini</p>
-                <p class="text-2xl font-bold text-gray-800 mt-1">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Penjualan Hari Ini</p>
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Transaksi Hari Ini</p>
-                <p class="text-2xl font-bold text-gray-800 mt-1">{{ $todayTransactions }}</p>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Transaksi Hari Ini</p>
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">{{ $todayTransactions }}</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Total Produk Aktif</p>
-                <p class="text-2xl font-bold text-gray-800 mt-1">{{ $totalProducts }}</p>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Total Produk Aktif</p>
+                    <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">{{ $totalProducts }}</p>
             </div>
-            <a href="{{ route('approvals.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:bg-gray-50 transition block">
-                <p class="text-sm text-gray-500">Pending Approvals</p>
+            <a href="{{ route('approvals.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition block">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Pending Approvals</p>
+                    <svg class="w-8 h-8 {{ $pendingApprovals > 0 ? 'text-yellow-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
                 <p class="text-2xl font-bold {{ $pendingApprovals > 0 ? 'text-yellow-600' : 'text-gray-800' }} mt-1">{{ $pendingApprovals }}</p>
             </a>
         </div>
@@ -116,17 +128,26 @@
         </div>
     @else
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Penjualan Saya Hari Ini</p>
-                <p class="text-2xl font-bold text-gray-800 mt-1">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Penjualan Saya Hari Ini</p>
+                    <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-                <p class="text-sm text-gray-500">Transaksi Saya Hari Ini</p>
-                <p class="text-2xl font-bold text-gray-800 mt-1">{{ $todayTransactions }}</p>
+            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Transaksi Saya Hari Ini</p>
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                </div>
+                <p class="text-2xl font-bold text-gray-800">{{ $todayTransactions }}</p>
             </div>
-            <a href="{{ route('requests.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:bg-gray-50 transition block">
-                <p class="text-sm text-gray-500">Request Pending</p>
-                <p class="text-2xl font-bold {{ $pendingRequests > 0 ? 'text-yellow-600' : 'text-gray-800' }} mt-1">{{ $pendingRequests }}</p>
+            <a href="{{ route('requests.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition block">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm text-gray-500">Request Pending</p>
+                    <svg class="w-8 h-8 {{ $pendingRequests > 0 ? 'text-yellow-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <p class="text-2xl font-bold {{ $pendingRequests > 0 ? 'text-yellow-600' : 'text-gray-800' }}">{{ $pendingRequests }}</p>
             </a>
         </div>
 

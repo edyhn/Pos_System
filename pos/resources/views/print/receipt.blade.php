@@ -18,13 +18,14 @@
     </style>
 </head>
 <body>
+    @php $store = $transaction->store; @endphp
     <div class="header">
-        <h2>{{ $transaction->store->name }}</h2>
-        <p>{{ $transaction->store->address }}</p>
-        <p>Telp: {{ $transaction->store->phone }}</p>
+        <h2>{{ $store?->name ?? 'Toko' }}</h2>
+        @if($store?->address) <p>{{ $store->address }}</p> @endif
+        @if($store?->phone) <p>Telp: {{ $store->phone }}</p> @endif
         <p>Invoice: {{ $transaction->invoice_number }}</p>
         <p>{{ $transaction->created_at->format('d/m/Y H:i') }}</p>
-        <p>Kasir: {{ $transaction->user->name }}</p>
+        <p>Kasir: {{ $transaction->user?->name ?? '-' }}</p>
         @if($transaction->customer_name)
             <p>Customer: {{ $transaction->customer_name }}</p>
         @endif
@@ -65,10 +66,10 @@
         @endif
     </table>
 
-    @if($transaction->store->receipt_footer)
+    @if($store?->receipt_footer)
         <div class="footer">
             <div class="divider"></div>
-            <p>{{ $transaction->store->receipt_footer }}</p>
+            <p>{{ $store->receipt_footer }}</p>
         </div>
     @endif
 

@@ -9,6 +9,14 @@ const initCharts = () => {
     document.querySelectorAll('[data-chart]').forEach((canvas) => {
         try {
             const config = JSON.parse(canvas.dataset.chart);
+            if (config.options?.scales) {
+                Object.values(config.options.scales).forEach(scale => {
+                    if (scale?.ticks?.callback && typeof scale.ticks.callback === 'string') {
+                        const fnName = scale.ticks.callback;
+                        scale.ticks.callback = typeof window[fnName] === 'function' ? window[fnName] : undefined;
+                    }
+                });
+            }
             const existing = Chart.getChart(canvas);
             if (existing) existing.destroy();
             new Chart(canvas, config);

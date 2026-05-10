@@ -22,20 +22,22 @@ class ProductController extends Controller
         return view('products.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        return redirect()->route('products.index')->with('info', 'Gunakan form untuk menambah produk.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+        $product = \App\Models\Product::where('store_id', auth()->user()->store_id)
+            ->with(['category', 'stockMovements' => fn($q) => $q->with('user')->latest()->take(50)])
+            ->with(['transactionItems' => fn($q) => $q->with('transaction')->latest()->take(50)])
+            ->with(['stockOpnameItems' => fn($q) => $q->with('stockOpname')->latest()->take(50)])
+            ->findOrFail($id);
+        return view('products.show', compact('product'));
     }
 
     /**
@@ -46,19 +48,13 @@ class ProductController extends Controller
         return view('products.edit', compact('id'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
-        //
+        return redirect()->route('products.index')->with('info', 'Gunakan form untuk mengupdate produk.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
+        return redirect()->route('products.index')->with('info', 'Gunakan fitur di halaman produk untuk menghapus.');
     }
 }

@@ -5,6 +5,16 @@
         <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('message') }}</div>
     @endif
 
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex flex-wrap items-center gap-4">
+        <input type="text" wire:model.live="search" placeholder="Cari invoice..." class="max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <select wire:model.live="statusFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+            <option value="">Semua Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Disetujui</option>
+            <option value="rejected">Ditolak</option>
+        </select>
+    </div>
+
     @if($showApproveForm)
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-4 max-w-lg">
             <h2 class="font-semibold text-gray-800 mb-3">Konfirmasi Refund</h2>
@@ -12,6 +22,7 @@
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Jumlah Refund</label>
                     <input type="number" wire:model="refundAmount" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    @error('refundAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Tipe Refund</label>
@@ -33,7 +44,7 @@
         </div>
     @endif
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table class="w-full">
             <thead>
                 <tr class="bg-gray-50 text-left text-sm text-gray-500">
@@ -48,10 +59,10 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse ($requests as $req)
                     <tr class="hover:bg-gray-50 text-sm">
-                        <td class="px-4 py-3 font-medium text-gray-800">{{ $req->transaction->invoice_number }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $req->user->name }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">{{ $req->transaction?->invoice_number ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $req->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500 max-w-xs truncate">{{ $req->condition_info }}</td>
-                        <td class="px-4 py-3 text-gray-800">Rp {{ number_format($req->transaction->total_amount, 0, ',', '.') }}</td>
+                        <td class="px-4 py-3 text-gray-800">Rp {{ number_format($req->transaction?->total_amount ?? 0, 0, ',', '.') }}</td>
                         <td class="px-4 py-3">
                             <span class="px-2 py-1 text-xs rounded-full
                                 @if($req->status == 'pending') bg-yellow-100 text-yellow-700
@@ -62,7 +73,7 @@
                         </td>
                         <td class="px-4 py-3 text-right">
                             @if($req->status == 'pending')
-                                <button wire:click="showForm({{ $req->id }}, {{ $req->transaction->total_amount }})" class="text-blue-600 hover:text-blue-800">Proses</button>
+                                <button wire:click="showForm({{ $req->id }}, {{ $req->transaction?->total_amount ?? 0 }})" class="text-blue-600 hover:text-blue-800">Proses</button>
                             @endif
                         </td>
                     </tr>

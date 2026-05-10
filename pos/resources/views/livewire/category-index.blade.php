@@ -19,6 +19,7 @@
                     <th class="px-4 py-3 font-medium">Nama</th>
                     <th class="px-4 py-3 font-medium">Slug</th>
                     <th class="px-4 py-3 font-medium">Deskripsi</th>
+                    <th class="px-4 py-3 font-medium">Status</th>
                     <th class="px-4 py-3 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
@@ -28,6 +29,11 @@
                         <td class="px-4 py-3 font-medium text-gray-800">{{ $category->name }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $category->slug }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $category->description ?? '-' }}</td>
+                        <td class="px-4 py-3">
+                            <button wire:click="toggleActive({{ $category->id }})" class="px-2 py-1 text-xs rounded-full {{ $category->is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                {{ $category->is_active ? 'Aktif' : 'Nonaktif' }}
+                            </button>
+                        </td>
                         <td class="px-4 py-3 text-right">
                             <a href="{{ route('categories.edit', $category) }}" class="text-blue-600 hover:text-blue-800 mr-2">Edit</a>
                             <button wire:click="delete({{ $category->id }})" wire:confirm="Yakin ingin menghapus?" class="text-red-600 hover:text-red-800">Hapus</button>
@@ -35,7 +41,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-4 py-8 text-center text-gray-400">Belum ada kategori.</td>
+                        <td colspan="5" class="px-4 py-8 text-center text-gray-400">Belum ada kategori.</td>
                     </tr>
                 @endforelse
             </tbody>

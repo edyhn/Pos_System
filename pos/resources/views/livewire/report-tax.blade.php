@@ -12,6 +12,28 @@
         </div>
     </div>
 
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-4" wire:ignore>
+        <h2 class="text-lg font-semibold text-gray-800 mb-3">Pajak Per Bulan (Tahun {{ now()->year }})</h2>
+        <canvas data-chart='{!! json_encode([
+            "type" => "bar",
+            "data" => [
+                "labels" => $monthlyChartData["labels"],
+                "datasets" => [[
+                    "label" => "Pajak",
+                    "data" => $monthlyChartData["values"],
+                    "backgroundColor" => "rgba(59, 130, 246, 0.7)",
+                    "borderColor" => "#3b82f6",
+                    "borderWidth" => 1
+                ]]
+            ],
+            "options" => [
+                "responsive" => true,
+                "plugins" => ["legend" => ["display" => false]],
+                "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
+            ]
+        ]) !!}'></canvas>
+    </div>
+
     <div class="grid grid-cols-3 gap-4 mb-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <p class="text-sm text-gray-500">Total Transaksi Kena Pajak</p>
@@ -35,7 +57,7 @@
                     <tr class="hover:bg-gray-50 text-sm">
                         <td class="px-4 py-3 text-gray-800">{{ $t->invoice_number }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $t->created_at->format('d/m/Y') }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $t->store->name }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $t->store?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-right">Rp {{ number_format($t->total_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 text-right text-blue-600 font-medium">Rp {{ number_format($t->tax_amount, 0, ',', '.') }}</td>
                     </tr>

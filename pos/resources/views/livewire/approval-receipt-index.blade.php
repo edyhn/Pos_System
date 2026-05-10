@@ -5,7 +5,17 @@
         <div class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{{ session('message') }}</div>
     @endif
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex flex-wrap items-center gap-4">
+        <input type="text" wire:model.live="search" placeholder="Cari invoice..." class="max-w-xs px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+        <select wire:model.live="statusFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+            <option value="">Semua Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Disetujui</option>
+            <option value="rejected">Ditolak</option>
+        </select>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table class="w-full">
             <thead>
                 <tr class="bg-gray-50 text-left text-sm text-gray-500">
@@ -20,8 +30,8 @@
             <tbody class="divide-y divide-gray-100">
                 @forelse ($requests as $req)
                     <tr class="hover:bg-gray-50 text-sm">
-                        <td class="px-4 py-3 font-medium text-gray-800">{{ $req->transaction->invoice_number }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ $req->user->name }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-800">{{ $req->transaction?->invoice_number ?? '-' }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $req->user?->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $req->reason ?? '-' }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $req->created_at->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3">

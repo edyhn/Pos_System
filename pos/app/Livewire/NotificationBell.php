@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Notification;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\ReceiptReprintRequest;
@@ -98,6 +99,12 @@ class NotificationBell extends Component
 
     public function markAllRead()
     {
+        $userId = auth()->id();
+        Notification::where('notifiable_id', $userId)
+            ->where('notifiable_type', \App\Models\User::class)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+        $this->showDropdown = false;
     }
 
     public function render()
