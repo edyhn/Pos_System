@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SalesExport;
 use App\Exports\StockExport;
 use App\Models\Product;
+use App\Models\Store;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -53,10 +54,13 @@ class ReportController extends Controller
 
         $transactions = $query->latest()->get();
 
+        $store = Store::find($storeId);
+
         $pdf = Pdf::loadView('reports.sales-pdf', [
             'transactions' => $transactions,
             'dateFrom' => $request->date_from,
             'dateTo' => $request->date_to,
+            'store' => $store,
         ]);
 
         return $pdf->download('laporan-penjualan.pdf');
@@ -80,8 +84,11 @@ class ReportController extends Controller
             ->with('category')
             ->get();
 
+        $store = Store::find($storeId);
+
         $pdf = Pdf::loadView('reports.stock-pdf', [
             'products' => $products,
+            'store' => $store,
         ]);
 
         return $pdf->download('laporan-stok.pdf');

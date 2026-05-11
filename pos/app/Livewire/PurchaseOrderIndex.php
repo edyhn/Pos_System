@@ -27,6 +27,22 @@ class PurchaseOrderIndex extends Component
         $this->resetPage();
     }
 
+    public function delete($id)
+    {
+        $po = PurchaseOrder::where('store_id', $this->storeId)->findOrFail($id);
+
+        if (!in_array($po->status, ['draft', 'cancelled'])) {
+            session()->flash('message', 'Hanya PO dengan status draft/cancelled yang bisa dihapus.');
+            return;
+        }
+
+        $poNumber = $po->po_number;
+        $po->delete();
+
+        \App\Services\ActivityLogger::log('delete', 'Menghapus PO: ' . $poNumber);
+        session()->flash('message', 'PO ' . $poNumber . ' berhasil dihapus.');
+    }
+
     public function updateStatus($id, $status)
     {
         $po = PurchaseOrder::where('store_id', $this->storeId)->with('items')->findOrFail($id);

@@ -2,40 +2,57 @@
     @php $user = auth()->user(); @endphp
 
     @if($user->isOwner())
+        {{-- Stat Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Penjualan Hari Ini</p>
-                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Penjualan Hari Ini</span>
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold text-gray-800">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+                <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+                <p class="text-xs text-gray-400 mt-1">Pendapatan hari ini</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Transaksi Hari Ini</p>
-                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Transaksi Hari Ini</span>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold text-gray-800">{{ $todayTransactions }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $todayTransactions }}</p>
+                <p class="text-xs text-gray-400 mt-1">Total transaksi</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Total Produk Aktif</p>
-                    <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Produk Aktif</span>
+                    <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold text-gray-800">{{ $totalProducts }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $totalProducts }}</p>
+                <p class="text-xs text-gray-400 mt-1">Produk tersedia</p>
             </div>
-            <a href="{{ route('approvals.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition block">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Pending Approvals</p>
-                    <svg class="w-8 h-8 {{ $pendingApprovals > 0 ? 'text-yellow-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <a href="{{ route('approvals.receipt') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition block">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Pending Approvals</span>
+                    <div class="w-10 h-10 rounded-lg {{ $pendingApprovals > 0 ? 'bg-amber-50' : 'bg-gray-50' }} flex items-center justify-center">
+                        <svg class="w-5 h-5 {{ $pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold {{ $pendingApprovals > 0 ? 'text-yellow-600' : 'text-gray-800' }} mt-1">{{ $pendingApprovals }}</p>
+                <p class="text-2xl font-bold {{ $pendingApprovals > 0 ? 'text-amber-600' : 'text-gray-900' }}">{{ $pendingApprovals }}</p>
+                <p class="text-xs {{ $pendingApprovals > 0 ? 'text-amber-500' : 'text-gray-400' }} mt-1">Menunggu persetujuan</p>
             </a>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6" wire:ignore>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">Penjualan 7 Hari</h2>
+        {{-- Charts --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6" wire:ignore>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Penjualan 7 Hari</h2>
+                    <span class="text-xs text-gray-400">Line Chart</span>
+                </div>
                 <canvas data-chart='{!! json_encode([
                     "type" => "line",
                     "data" => [
@@ -44,22 +61,26 @@
                             "label" => "Penjualan",
                             "data" => $weeklyChartData["values"],
                             "borderColor" => "#3b82f6",
-                            "backgroundColor" => "rgba(59, 130, 246, 0.1)",
+                            "backgroundColor" => "rgba(59, 130, 246, 0.08)",
                             "fill" => true,
-                            "tension" => 0.3
+                            "tension" => 0.3,
+                            "pointRadius" => 4,
+                            "pointBackgroundColor" => "#3b82f6",
+                            "borderWidth" => 2
                         ]]
                     ],
                     "options" => [
                         "responsive" => true,
                         "plugins" => ["legend" => ["display" => false]],
-                        "scales" => [
-                            "y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]
-                        ]
+                        "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
                     ]
                 ]) !!}'></canvas>
             </div>
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">Penjualan Bulanan</h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Penjualan Bulanan</h2>
+                    <span class="text-xs text-gray-400">Bar Chart</span>
+                </div>
                 <canvas data-chart='{!! json_encode([
                     "type" => "bar",
                     "data" => [
@@ -67,92 +88,136 @@
                         "datasets" => [[
                             "label" => "Penjualan",
                             "data" => $monthlyChartData["values"],
-                            "backgroundColor" => "rgba(16, 185, 129, 0.7)",
+                            "backgroundColor" => "rgba(16, 185, 129, 0.6)",
                             "borderColor" => "#10b981",
-                            "borderWidth" => 1
+                            "borderWidth" => 1,
+                            "borderRadius" => 4
                         ]]
                     ],
                     "options" => [
                         "responsive" => true,
                         "plugins" => ["legend" => ["display" => false]],
-                        "scales" => [
-                            "y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]
-                        ]
+                        "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
                     ]
                 ]) !!}'></canvas>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">Draft PO Menunggu</h2>
+        {{-- Bottom sections --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Draft Purchase Order</h2>
+                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{{ $draftPos->count() }}</span>
+                </div>
                 @if($draftPos->count())
                     <div class="space-y-2">
                         @foreach($draftPos as $po)
-                            <a href="{{ route('purchase-orders.edit', $po) }}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800">#{{ $po->po_number }}</p>
-                                    <p class="text-xs text-gray-500">{{ $po->vendor?->name ?? '-' }} | {{ $po->items_count ?? 0 }} item</p>
+                            <a href="{{ route('purchase-orders.edit', $po) }}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition">#{{ $po->po_number }}</p>
+                                        <p class="text-xs text-gray-400">{{ $po->vendor?->name ?? '-' }} · {{ $po->items_count ?? 0 }} item</p>
+                                    </div>
                                 </div>
-                                <span class="text-xs {{ $po->is_auto_draft ? 'text-orange-500' : 'text-gray-400' }}">{{ $po->is_auto_draft ? 'Auto' : 'Manual' }}</span>
+                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full {{ $po->is_auto_draft ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ $po->is_auto_draft ? 'Otomatis' : 'Manual' }}
+                                </span>
                             </a>
                         @endforeach
                     </div>
-                    <a href="{{ route('purchase-orders.index') }}" class="mt-3 inline-block text-sm text-blue-600 hover:underline">Lihat semua PO</a>
+                    <a href="{{ route('purchase-orders.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                        Lihat semua PO
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                 @else
-                    <p class="text-gray-500 text-sm">Tidak ada draft PO.</p>
+                    <div class="flex flex-col items-center py-8 text-gray-400">
+                        <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <p class="text-sm">Tidak ada draft PO</p>
+                    </div>
                 @endif
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h2 class="text-lg font-semibold text-gray-800 mb-3">Stok Menipis</h2>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Stok Menipis</h2>
+                    <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">{{ $lowStockProducts->count() }}</span>
+                </div>
                 @if($lowStockProducts->count())
                     <div class="space-y-2">
                         @foreach($lowStockProducts as $product)
-                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-800">{{ $product->name }}</p>
-                                    <p class="text-xs text-gray-500">SKU: {{ $product->sku }}</p>
+                            <div class="flex items-center justify-between p-3 rounded-lg {{ $product->stock == 0 ? 'bg-red-50' : 'bg-amber-50' }}">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-white border flex items-center justify-center {{ $product->stock == 0 ? 'border-red-200' : 'border-amber-200' }}">
+                                        <svg class="w-4 h-4 {{ $product->stock == 0 ? 'text-red-400' : 'text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">{{ $product->name }}</p>
+                                        <p class="text-xs text-gray-400">SKU: {{ $product->sku }}</p>
+                                    </div>
                                 </div>
-                                <span class="text-sm font-bold {{ $product->stock == 0 ? 'text-red-600' : 'text-orange-500' }}">
-                                    {{ $product->stock }} / {{ $product->min_stock }}
-                                </span>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold {{ $product->stock == 0 ? 'text-red-600' : 'text-amber-600' }}">{{ $product->stock }}</p>
+                                    <p class="text-[10px] text-gray-400">min: {{ $product->min_stock }}</p>
+                                </div>
                             </div>
                         @endforeach
                     </div>
-                    <a href="{{ route('stock.index') }}" class="mt-3 inline-block text-sm text-blue-600 hover:underline">Lihat semua stok</a>
+                    <a href="{{ route('stock.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                        Lihat semua stok
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
                 @else
-                    <p class="text-gray-500 text-sm">Semua stok aman.</p>
+                    <div class="flex flex-col items-center py-8 text-gray-400">
+                        <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-sm">Semua stok aman</p>
+                    </div>
                 @endif
             </div>
         </div>
     @else
+        {{-- Cashier Dashboard --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Penjualan Saya Hari Ini</p>
-                    <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Penjualan Saya Hari Ini</span>
+                    <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold text-gray-800">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+                <p class="text-2xl font-bold text-gray-900">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
+                <p class="text-xs text-gray-400 mt-1">Penjualan Anda hari ini</p>
             </div>
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Transaksi Saya Hari Ini</p>
-                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Transaksi Saya Hari Ini</span>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold text-gray-800">{{ $todayTransactions }}</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $todayTransactions }}</p>
+                <p class="text-xs text-gray-400 mt-1">Total transaksi Anda</p>
             </div>
-            <a href="{{ route('requests.receipt') }}" class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition block">
-                <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm text-gray-500">Request Pending</p>
-                    <svg class="w-8 h-8 {{ $pendingRequests > 0 ? 'text-yellow-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <a href="{{ route('requests.receipt') }}" class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition block">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-sm font-medium text-gray-500">Request Pending</span>
+                    <div class="w-10 h-10 rounded-lg {{ $pendingRequests > 0 ? 'bg-amber-50' : 'bg-gray-50' }} flex items-center justify-center">
+                        <svg class="w-5 h-5 {{ $pendingRequests > 0 ? 'text-amber-500' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                 </div>
-                <p class="text-2xl font-bold {{ $pendingRequests > 0 ? 'text-yellow-600' : 'text-gray-800' }}">{{ $pendingRequests }}</p>
+                <p class="text-2xl font-bold {{ $pendingRequests > 0 ? 'text-amber-600' : 'text-gray-900' }}">{{ $pendingRequests }}</p>
+                <p class="text-xs {{ $pendingRequests > 0 ? 'text-amber-500' : 'text-gray-400' }} mt-1">Menunggu persetujuan</p>
             </a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6" wire:ignore>
-            <h2 class="text-lg font-semibold text-gray-800 mb-3">Penjualan Saya 7 Hari</h2>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6" wire:ignore>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-semibold text-gray-800">Penjualan Saya 7 Hari</h2>
+                <span class="text-xs text-gray-400">Line Chart</span>
+            </div>
             <canvas data-chart='{!! json_encode([
                 "type" => "line",
                 "data" => [
@@ -161,24 +226,29 @@
                         "label" => "Penjualan",
                         "data" => $weeklyChartData["values"],
                         "borderColor" => "#8b5cf6",
-                        "backgroundColor" => "rgba(139, 92, 246, 0.1)",
+                        "backgroundColor" => "rgba(139, 92, 246, 0.08)",
                         "fill" => true,
-                        "tension" => 0.3
+                        "tension" => 0.3,
+                        "pointRadius" => 4,
+                        "pointBackgroundColor" => "#8b5cf6",
+                        "borderWidth" => 2
                     ]]
                 ],
                 "options" => [
                     "responsive" => true,
                     "plugins" => ["legend" => ["display" => false]],
-                    "scales" => [
-                        "y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]
-                    ]
+                    "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
                 ]
             ]) !!}'></canvas>
         </div>
     @endif
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-        <h2 class="text-lg font-semibold text-gray-800 mb-3">Cek Langganan Aktif</h2>
+    {{-- Subscription Check --}}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-semibold text-gray-800">Cek Langganan Aktif</h2>
+            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
         @livewire('subscription-check')
     </div>
 </div>

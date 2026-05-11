@@ -203,37 +203,52 @@ class ForecastService
 
     public function stockRunoutPrediction(Product $product, float $avgDailySales): array
     {
-        if ($avgDailySales <= 0) {
-            return [
-                'estimated_days' => null,
-                'estimated_date' => 'Tidak ada data penjualan',
-                'status' => 'no_data',
-            ];
+        $stock = $product->stock ?? 0;
+        $minStock = $product->min_stock ?? 0;
+
+        if ($stock <= 0) {
+            return ['estimated_days' => 0, 'estimated_date' => 'Hari ini', 'status' => 'habis'];
         }
 
-        $stock = $product->stock ?? 0;
-        $estimatedDays = (int) floor($stock / $avgDailySales);
-        $estimatedDate = now()->addDays($estimatedDays);
+        if ($stock <= $minStock) {
+            return ['estimated_days' => null, 'estimated_date' => 'Di bawah minimum', 'status' => 'kritis'];
+        }
 
-        return [
-            'estimated_days' => $estimatedDays,
-            'estimated_date' => $estimatedDate->format('d/m/Y'),
-            'status' => $estimatedDays <= 0 ? 'habis' : ($estimatedDays <= 7 ? 'kritis' : ($estimatedDays <= 30 ? 'menipis' : 'aman')),
-        ];
+        if ($stock <= $minStock * 2) {
+            return ['estimated_days' => null, 'estimated_date' => 'Mendekati minimum', 'status' => 'menipis'];
+        }
+
+        if ($avgDailySales > 0) {
+            $estimatedDays = (int) floor($stock / $avgDailySales);
+            $estimatedDate = now()->addDays($estimatedDays);
+
+            if ($estimatedDays <= 7) {
+                return ['estimated_days' => $estimatedDays, 'estimated_date' => $estimatedDate->format('d/m/Y'), 'status' => 'kritis'];
+            }
+
+            if ($estimatedDays <= 30) {
+                return ['estimated_days' => $estimatedDays, 'estimated_date' => $estimatedDate->format('d/m/Y'), 'status' => 'menipis'];
+            }
+        }
+
+        return ['estimated_days' => null, 'estimated_date' => 'Stok aman', 'status' => 'aman'];
     }
 
     public function reorderRecommendation(Product $product, float $avgDailySales, int $leadTimeDays = 7, int $safetyStock = 10): array
     {
+        $stock = $product->stock ?? 0;
+
         if ($avgDailySales <= 0) {
+            $minStock = $product->min_stock ?? 0;
+            $recommended = $stock < $minStock ? $minStock - $stock : 0;
             return [
-                'recommended_qty' => 0,
+                'recommended_qty' => max(0, $recommended),
                 'safety_stock' => $safetyStock,
                 'lead_time_days' => $leadTimeDays,
                 'avg_daily_sales' => 0,
             ];
         }
 
-        $stock = $product->stock ?? 0;
         $usageDuringLeadTime = $avgDailySales * $leadTimeDays;
         $recommended = (int) ceil(($usageDuringLeadTime + $safetyStock) - $stock);
         $recommended = max(0, $recommended);

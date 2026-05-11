@@ -32,7 +32,7 @@ class ProductIndex extends Component
 
     public function render()
     {
-        $query = Product::where('store_id', $this->storeId)->with('category');
+        $query = Product::where('store_id', $this->storeId)->with('category', 'vendor');
 
         if ($this->search) {
             $query->where(function ($q) {

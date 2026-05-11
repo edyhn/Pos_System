@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Vendor;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
@@ -14,6 +15,7 @@ class ProductForm extends Component
 
     public $productId;
     public $category_id;
+    public $vendor_id;
     public $name;
     public $slug;
     public $sku;
@@ -34,12 +36,14 @@ class ProductForm extends Component
     public $isEdit = false;
     public $storeId;
     public $categories;
+    public $vendors;
     public $existingImage;
 
     protected function rules()
     {
         return [
             'category_id' => 'required|exists:categories,id',
+            'vendor_id' => 'nullable|exists:vendors,id',
             'name' => 'required|min:2|max:255',
             'slug' => 'required|max:255|unique:products,slug,' . ($this->productId ?? '') . ',id,store_id,' . $this->storeId,
             'sku' => 'nullable|max:50|unique:products,sku,' . ($this->productId ?? '') . ',id,store_id,' . $this->storeId,
@@ -63,12 +67,14 @@ class ProductForm extends Component
     {
         $this->storeId = auth()->user()->store_id;
         $this->categories = Category::where('store_id', $this->storeId)->whereHas('store', fn($q) => $q->where('is_active', true))->get();
+        $this->vendors = Vendor::where('store_id', $this->storeId)->where('is_active', true)->get();
 
         if ($id) {
             $this->isEdit = true;
             $this->productId = $id;
             $product = Product::where('store_id', $this->storeId)->findOrFail($id);
             $this->category_id = $product->category_id;
+            $this->vendor_id = $product->vendor_id;
             $this->name = $product->name;
             $this->slug = $product->slug;
             $this->sku = $product->sku;
@@ -115,6 +121,7 @@ class ProductForm extends Component
         $data = [
             'store_id' => $this->storeId,
             'category_id' => $this->category_id,
+            'vendor_id' => $this->vendor_id ?: null,
             'name' => $this->name,
             'slug' => $this->slug,
             'sku' => $this->sku,
@@ -143,7 +150,7 @@ class ProductForm extends Component
             session()->flash('message', 'Produk berhasil ditambahkan.');
         }
 
-        return redirect()->route('products.index');
+        $this->redirect(route('products.index'));
     }
 
     public function render()

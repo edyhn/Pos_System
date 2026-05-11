@@ -13,6 +13,7 @@ class StockIndex extends Component
     public $storeId;
     public $search = '';
     public $showLowStock = false;
+    public $showInactive = false;
 
     public function mount()
     {
@@ -24,9 +25,19 @@ class StockIndex extends Component
         $this->resetPage();
     }
 
+    public function toggleActive($id)
+    {
+        $product = Product::where('store_id', $this->storeId)->findOrFail($id);
+        $product->update(['is_active' => !$product->is_active]);
+    }
+
     public function render()
     {
-        $query = Product::where('store_id', $this->storeId)->where('is_active', true)->with('category');
+        $query = Product::where('store_id', $this->storeId)->with('category');
+
+        if (!$this->showInactive) {
+            $query->where('is_active', true);
+        }
 
         if ($this->search) {
             $query->where(function ($q) {

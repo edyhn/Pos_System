@@ -17,10 +17,12 @@ class StockOpnameIndex extends Component
     public $storeId;
     public $search = '';
     public $showForm = false;
+    public $showDetail = false;
     public $opnameId;
     public $date;
     public $notes = '';
     public $opnameItems = [];
+    public $viewOpnameId;
 
     public function mount()
     {
@@ -51,6 +53,19 @@ class StockOpnameIndex extends Component
             $item = &$this->opnameItems[$index];
             $item['difference'] = (int) $item['actual_stock'] - (int) $item['system_stock'];
         }
+    }
+
+    public function viewOpname($id)
+    {
+        $this->viewOpnameId = $id;
+        $this->showDetail = true;
+        $this->showForm = false;
+    }
+
+    public function closeDetail()
+    {
+        $this->showDetail = false;
+        $this->viewOpnameId = null;
     }
 
     public function saveOpname()
@@ -108,6 +123,15 @@ class StockOpnameIndex extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('livewire.stock-opname-index', compact('opnames'));
+        $viewOpname = null;
+        $viewItems = collect();
+        if ($this->showDetail && $this->viewOpnameId) {
+            $viewOpname = StockOpname::with(['items.product', 'user'])
+                ->where('store_id', $this->storeId)
+                ->find($this->viewOpnameId);
+            $viewItems = $viewOpname?->items ?? collect();
+        }
+
+        return view('livewire.stock-opname-index', compact('opnames', 'viewOpname', 'viewItems'));
     }
 }

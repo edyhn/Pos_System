@@ -1,11 +1,21 @@
 <div>
-    <h1 class="text-2xl font-bold text-gray-800 mb-4">Forecast Penjualan</h1>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-gray-900">Forecast Penjualan</h1>
+                <p class="text-sm text-gray-500">Analisis dan prediksi penjualan produk</p>
+            </div>
+        </div>
+    </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
         <div class="flex flex-wrap gap-3 items-end">
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Rentang Data (hari)</label>
-                <select wire:model.live="dateRange" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Rentang Data (hari)</label>
+                <select wire:model.live="dateRange" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     <option value="30">30 Hari</option>
                     <option value="60">60 Hari</option>
                     <option value="90">90 Hari</option>
@@ -14,8 +24,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Periode MA</label>
-                <select wire:model.live="period" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Periode MA</label>
+                <select wire:model.live="period" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     <option value="3">3</option>
                     <option value="7">7</option>
                     <option value="14">14</option>
@@ -23,8 +33,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Alpha (SES)</label>
-                <select wire:model.live="alpha" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Alpha (SES)</label>
+                <select wire:model.live="alpha" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     <option value="0.1">0.1 (halus)</option>
                     <option value="0.3">0.3</option>
                     <option value="0.5">0.5</option>
@@ -33,16 +43,16 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Prediksi (hari)</label>
-                <select wire:model.live="futureDays" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Prediksi (hari)</label>
+                <select wire:model.live="futureDays" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     <option value="7">7 Hari</option>
                     <option value="14">14 Hari</option>
                     <option value="30">30 Hari</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs text-gray-500 mb-1">Filter Produk</label>
-                <select wire:model.live="productFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Filter Produk</label>
+                <select wire:model.live="productFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     <option value="">Semua Produk</option>
                     @foreach ($products as $p)
                         <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -53,16 +63,16 @@
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs text-gray-500">Total Penjualan</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-xs font-medium text-gray-500">Total Penjualan</p>
             <p class="text-lg font-bold text-gray-800">Rp {{ number_format($stats['total_sales'] ?? 0, 0, ',', '.') }}</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs text-gray-500">Rata-rata Harian</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-xs font-medium text-gray-500">Rata-rata Harian</p>
             <p class="text-lg font-bold text-gray-800">Rp {{ number_format($stats['avg_daily'] ?? 0, 0, ',', '.') }}</p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs text-gray-500">Tren</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-xs font-medium text-gray-500">Tren</p>
             <p class="text-lg font-bold {{ ($stats['trend'] ?? 'stabil') == 'naik' ? 'text-green-600' : (($stats['trend'] ?? 'stabil') == 'turun' ? 'text-red-600' : 'text-gray-800') }}">
                 {{ ucfirst($stats['trend'] ?? 'Stabil') }}
                 @if(($stats['slope'] ?? 0) != 0)
@@ -70,30 +80,30 @@
                 @endif
             </p>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <p class="text-xs text-gray-500">Prediksi {{ $futureDays }} Hari</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <p class="text-xs font-medium text-gray-500">Prediksi {{ $futureDays }} Hari</p>
             <p class="text-lg font-bold text-blue-600">Rp {{ number_format($stats['future_total'] ?? 0, 0, ',', '.') }}</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-        <div class="flex gap-1 border-b border-gray-200 mb-4">
-            <button wire:click="$set('activeTab', 'sma')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'sma' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
+        <div class="flex gap-1 border-b border-gray-200 mb-4 overflow-x-auto">
+            <button wire:click="$set('activeTab', 'sma')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'sma' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Simple MA ({{ $period }})
             </button>
-            <button wire:click="$set('activeTab', 'wma')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'wma' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+            <button wire:click="$set('activeTab', 'wma')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'wma' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Weighted MA ({{ $period }})
             </button>
-            <button wire:click="$set('activeTab', 'ses')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'ses' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+            <button wire:click="$set('activeTab', 'ses')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'ses' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Exponential Smoothing
             </button>
-            <button wire:click="$set('activeTab', 'regression')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'regression' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+            <button wire:click="$set('activeTab', 'regression')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'regression' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Regresi Linear
             </button>
-            <button wire:click="$set('activeTab', 'seasonal')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'seasonal' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+            <button wire:click="$set('activeTab', 'seasonal')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'seasonal' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Seasonal (7 Hari)
             </button>
-            <button wire:click="$set('activeTab', 'future')" class="px-4 py-2 text-sm font-medium {{ $activeTab == 'future' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
+            <button wire:click="$set('activeTab', 'future')" class="px-4 py-2 text-sm font-medium whitespace-nowrap {{ $activeTab == 'future' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700' }}">
                 Prediksi {{ $futureDays }} Hari
             </button>
         </div>

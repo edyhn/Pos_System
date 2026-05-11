@@ -11,7 +11,7 @@ class Product extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'store_id', 'category_id', 'name', 'slug', 'sku', 'barcode',
+        'store_id', 'category_id', 'vendor_id', 'name', 'slug', 'sku', 'barcode',
         'price', 'cost_price', 'stock', 'min_stock', 'unit',
         'is_taxed', 'tax_rate', 'is_subscription', 'subscription_days',
         'description', 'image', 'is_active',
@@ -37,6 +37,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
     }
 
     public function stockMovements(): HasMany
