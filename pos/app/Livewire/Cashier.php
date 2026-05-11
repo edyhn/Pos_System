@@ -5,13 +5,8 @@ namespace App\Livewire;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Transaction;
-use App\Models\TransactionItem;
-use App\Models\Subscription;
-use App\Models\StockMovement;
 use Livewire\Component;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Services\CheckoutService;
 use App\Services\MidtransService;
 
 class Cashier extends Component
@@ -36,12 +31,12 @@ class Cashier extends Component
         ];
     }
 
-    public function mount()
+    public function mount(): void
     {
         $this->storeId = auth()->user()->store_id;
     }
 
-    public function addToCart($productId)
+    public function addToCart($productId): void
     {
         $product = Product::where('store_id', $this->storeId)
             ->where('is_active', true)
@@ -66,14 +61,14 @@ class Cashier extends Component
         }
     }
 
-    public function removeFromCart($index)
+    public function removeFromCart($index): void
     {
         if (!isset($this->cart[$index])) return;
         unset($this->cart[$index]);
         $this->cart = array_values($this->cart);
     }
 
-    public function updateQuantity($index, $quantity)
+    public function updateQuantity($index, $quantity): void
     {
         if (!isset($this->cart[$index])) return;
         $quantity = max(1, (int) $quantity);
@@ -81,12 +76,12 @@ class Cashier extends Component
         $this->cart[$index]['subtotal'] = $quantity * $this->cart[$index]['price'];
     }
 
-    public function getSubtotalProperty()
+    public function getSubtotalProperty(): float
     {
         return array_sum(array_column($this->cart, 'subtotal'));
     }
 
-    public function getTaxAmountProperty()
+    public function getTaxAmountProperty(): float
     {
         if (!$this->tax_enabled) return 0;
 
@@ -99,12 +94,12 @@ class Cashier extends Component
         return $tax;
     }
 
-    public function getTotalProperty()
+    public function getTotalProperty(): float
     {
         return $this->subtotal + $this->taxAmount;
     }
 
-    public function getChangeProperty()
+    public function getChangeProperty(): float
     {
         if ($this->payment_method === 'cash' && $this->payment_amount > 0) {
             return $this->payment_amount - $this->total;
@@ -112,7 +107,7 @@ class Cashier extends Component
         return 0;
     }
 
-    public function checkout()
+    public function checkout(CheckoutService $checkoutService): void
     {
         if (empty($this->cart)) {
             session()->flash('error', 'Keranjang masih kosong.');
@@ -124,102 +119,26 @@ class Cashier extends Component
             'customer_name' => 'nullable|max:255',
         ]);
 
-        if ($this->payment_method === 'cash' && $this->payment_amount < $this->total) {
-            session()->flash('error', 'Pembayaran kurang dari total.');
-            return;
-        }
-
         if ($this->payment_method === 'midtrans') {
             $this->processMidtransPayment();
             return;
         }
 
-        $productIds = array_column($this->cart, 'product_id');
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-        foreach ($this->cart as $item) {
-            $product = $products->get($item['product_id']);
-            if (!$product) {
-                session()->flash('error', 'Produk tidak ditemukan.');
-                return;
-            }
-            if ($product->stock < $item['quantity']) {
-                session()->flash('error', 'Stok ' . $product->name . ' tidak mencukupi.');
-                return;
-            }
-        }
-
-        $lock = Cache::lock('invoice-number-' . date('Ymd'), 10);
-        $lock->block(5);
         try {
-            $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad(
-                Transaction::whereDate('created_at', today())->where('store_id', $this->storeId)->count() + 1, 4, '0', STR_PAD_LEFT
+            $transaction = $checkoutService->processCheckout(
+                cart: $this->cart,
+                customerName: $this->customer_name,
+                paymentMethod: $this->payment_method,
+                paymentAmount: (float) $this->payment_amount,
+                taxEnabled: $this->tax_enabled,
+                storeId: $this->storeId,
+                userId: auth()->id(),
             );
-        } finally {
-            $lock->release();
-        }
-
-        DB::transaction(function () use ($products, $invoiceNumber) {
-
-            $transaction = Transaction::create([
-                'store_id' => $this->storeId,
-                'user_id' => auth()->id(),
-                'invoice_number' => $invoiceNumber,
-                'customer_name' => $this->customer_name,
-                'subtotal' => $this->subtotal,
-                'tax_amount' => $this->taxAmount,
-                'total_amount' => $this->total,
-                'payment_amount' => $this->payment_method === 'cash' ? $this->payment_amount : $this->total,
-                'change_amount' => $this->payment_method === 'cash' ? max(0, $this->payment_amount - $this->total) : 0,
-                'payment_method' => $this->payment_method,
-                'status' => 'completed',
-            ]);
-
-            foreach ($this->cart as $item) {
-                TransactionItem::create([
-                    'transaction_id' => $transaction->id,
-                    'product_id' => $item['product_id'],
-                    'product_name' => $item['name'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'subtotal' => $item['subtotal'],
-                    'is_taxed' => $item['is_taxed'],
-                ]);
-
-                $product = $products->get($item['product_id']);
-                $product->decrement('stock', $item['quantity']);
-
-                StockMovement::create([
-                    'store_id' => $this->storeId,
-                    'product_id' => $item['product_id'],
-                    'user_id' => auth()->id(),
-                    'reference_type' => 'transaction',
-                    'reference_id' => $transaction->id,
-                    'type' => 'out',
-                    'quantity' => $item['quantity'],
-                    'note' => 'Penjualan #' . $invoiceNumber,
-                ]);
-
-                if ($product->is_subscription) {
-                    $startDate = now();
-                    Subscription::create([
-                        'store_id' => $this->storeId,
-                        'transaction_id' => $transaction->id,
-                        'product_id' => $item['product_id'],
-                        'customer_identifier' => $this->customer_name,
-                        'start_date' => $startDate,
-                        'end_date' => $startDate->copy()->addDays($product->subscription_days),
-                        'status' => 'active',
-                    ]);
-                }
-            }
-
-            \App\Services\ActivityLogger::log('create', 'Transaksi penjualan: ' . $invoiceNumber . ' - Rp ' . number_format($this->total, 0, ',', '.'));
 
             $this->dispatch('transactionCompleted',
                 transactionId: $transaction->id,
-                invoiceNumber: $invoiceNumber,
-                total: $this->total,
+                invoiceNumber: $transaction->invoice_number,
+                total: $transaction->total_amount,
                 paymentMethod: $this->payment_method,
                 customerName: $this->customer_name
             );
@@ -227,11 +146,13 @@ class Cashier extends Component
             $this->customer_name = '';
             $this->payment_amount = 0;
 
-            session()->flash('success', 'Transaksi berhasil! Invoice: ' . $invoiceNumber);
-        });
+            session()->flash('success', 'Transaksi berhasil! Invoice: ' . $transaction->invoice_number);
+        } catch (\RuntimeException $e) {
+            session()->flash('error', $e->getMessage());
+        }
     }
 
-    public function processMidtransPayment()
+    public function processMidtransPayment(): void
     {
         if (empty($this->cart)) {
             session()->flash('error', 'Keranjang masih kosong.');
@@ -243,17 +164,8 @@ class Cashier extends Component
             return;
         }
 
-        $lock = Cache::lock('invoice-number-' . date('Ymd'), 10);
-        $lock->block(5);
-        try {
-            $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad(
-                Transaction::whereDate('created_at', today())->where('store_id', $this->storeId)->count() + 1, 4, '0', STR_PAD_LEFT
-            );
-        } finally {
-            $lock->release();
-        }
-
-        $this->midtransOrderId = $invoiceNumber;
+        $checkoutService = app(CheckoutService::class);
+        $this->midtransOrderId = $checkoutService->generateInvoiceNumber($this->storeId);
 
         $itemDetails = [];
         foreach ($this->cart as $item) {
@@ -265,12 +177,14 @@ class Cashier extends Component
             ];
         }
 
+        $total = $checkoutService->calculateTotal($this->cart, $this->tax_enabled);
+
         try {
             $midtrans = app(MidtransService::class);
             $params = [
                 'transaction_details' => [
                     'order_id' => $this->midtransOrderId,
-                    'gross_amount' => (int) $this->total,
+                    'gross_amount' => (int) $total,
                 ],
                 'item_details' => $itemDetails,
                 'customer_details' => [
@@ -292,136 +206,49 @@ class Cashier extends Component
         }
     }
 
-    public function completeMidtransPayment()
+    public function completeMidtransPayment(CheckoutService $checkoutService): void
     {
         if (!$this->midtransOrderId || empty($this->cart)) return;
 
-        $productIds = array_column($this->cart, 'product_id');
-        $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-        foreach ($this->cart as $item) {
-            $product = $products->get($item['product_id']);
-            if (!$product) {
-                session()->flash('error', 'Produk tidak ditemukan.');
-                return;
-            }
-            if ($product->stock < $item['quantity']) {
-                session()->flash('error', 'Stok ' . $product->name . ' tidak mencukupi.');
-                return;
-            }
-        }
-
-        $lock = Cache::lock('midtrans-' . $this->midtransOrderId, 10);
-
         try {
-            $result = $lock->get(function () use ($products) {
-                $existing = Transaction::where('invoice_number', $this->midtransOrderId)->first();
-                if ($existing && $existing->status === 'completed') {
-                    $this->cart = [];
-                    $this->customer_name = '';
-                    $this->payment_amount = 0;
-                    $this->midtransSnapToken = null;
-                    $this->midtransOrderId = null;
-                    $this->showMidtransPopup = false;
-                    session()->flash('success', 'Pembayaran berhasil! Invoice: ' . $existing->invoice_number);
-                    return true;
+            $midtrans = app(MidtransService::class);
+            try {
+                $statusResponse = $midtrans->checkStatus($this->midtransOrderId);
+                $txStatus = $statusResponse->transaction_status ?? '';
+                if (!in_array($txStatus, ['settlement', 'capture'])) {
+                    session()->flash('error', 'Pembayaran Midtrans belum selesai. Status: ' . $txStatus);
+                    return;
                 }
-
-                $midtrans = app(MidtransService::class);
-                try {
-                    $statusResponse = $midtrans->checkStatus($this->midtransOrderId);
-                    $txStatus = $statusResponse->transaction_status ?? '';
-                    if (!in_array($txStatus, ['settlement', 'capture'])) {
-                        session()->flash('error', 'Pembayaran Midtrans belum selesai. Status: ' . $txStatus);
-                        return false;
-                    }
-                } catch (\Exception $e) {
-                    Log::info('Midtrans status check failed, proceeding anyway', ['error' => $e->getMessage()]);
-                }
-
-                DB::transaction(function () use ($products) {
-                    $invoiceNumber = $this->midtransOrderId;
-
-                    $transaction = Transaction::updateOrCreate(
-                        ['invoice_number' => $invoiceNumber],
-                        [
-                            'store_id' => $this->storeId,
-                            'user_id' => auth()->id(),
-                            'customer_name' => $this->customer_name,
-                            'subtotal' => $this->subtotal,
-                            'tax_amount' => $this->taxAmount,
-                            'total_amount' => $this->total,
-                            'payment_amount' => $this->total,
-                            'change_amount' => 0,
-                            'payment_method' => 'midtrans',
-                            'status' => 'completed',
-                        ]
-                    );
-
-                    if (!$transaction->items()->exists()) {
-                        foreach ($this->cart as $item) {
-                            TransactionItem::create([
-                                'transaction_id' => $transaction->id,
-                                'product_id' => $item['product_id'],
-                                'product_name' => $item['name'],
-                                'quantity' => $item['quantity'],
-                                'price' => $item['price'],
-                                'subtotal' => $item['subtotal'],
-                                'is_taxed' => $item['is_taxed'],
-                            ]);
-
-                            $product = $products->get($item['product_id']);
-                            $product->decrement('stock', $item['quantity']);
-                            StockMovement::create([
-                                'store_id' => $this->storeId,
-                                'product_id' => $item['product_id'],
-                                'user_id' => auth()->id(),
-                                'reference_type' => 'transaction',
-                                'reference_id' => $transaction->id,
-                                'type' => 'out',
-                                'quantity' => $item['quantity'],
-                                'note' => 'Penjualan Midtrans #' . $invoiceNumber,
-                            ]);
-
-                            if ($product->is_subscription) {
-                                Subscription::create([
-                                    'store_id' => $this->storeId,
-                                    'transaction_id' => $transaction->id,
-                                    'product_id' => $item['product_id'],
-                                    'customer_identifier' => $this->customer_name,
-                                    'start_date' => now(),
-                                    'end_date' => now()->addDays($product->subscription_days),
-                                    'status' => 'active',
-                                ]);
-                            }
-                        }
-                    }
-
-                    $this->dispatch('transactionCompleted',
-                        transactionId: $transaction->id,
-                        invoiceNumber: $invoiceNumber,
-                        total: $this->total,
-                        paymentMethod: 'midtrans',
-                        customerName: $this->customer_name
-                    );
-                    $this->cart = [];
-                    $this->customer_name = '';
-                    $this->payment_amount = 0;
-                    $this->midtransSnapToken = null;
-                    $this->midtransOrderId = null;
-                    $this->showMidtransPopup = false;
-
-                    session()->flash('success', 'Pembayaran berhasil! Invoice: ' . $invoiceNumber);
-                });
-
-                return true;
-            });
-
-            if (!$result) {
-                session()->flash('error', 'Pembayaran sedang diproses, silakan tunggu.');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::info('Midtrans status check failed, proceeding anyway', ['error' => $e->getMessage()]);
             }
-        } finally {
-            $lock->release();
+
+            $transaction = $checkoutService->processMidtransCheckout(
+                cart: $this->cart,
+                customerName: $this->customer_name,
+                orderId: $this->midtransOrderId,
+                taxEnabled: $this->tax_enabled,
+                storeId: $this->storeId,
+                userId: auth()->id(),
+            );
+
+            $this->dispatch('transactionCompleted',
+                transactionId: $transaction->id,
+                invoiceNumber: $transaction->invoice_number,
+                total: $transaction->total_amount,
+                paymentMethod: 'midtrans',
+                customerName: $this->customer_name
+            );
+            $this->cart = [];
+            $this->customer_name = '';
+            $this->payment_amount = 0;
+            $this->midtransSnapToken = null;
+            $this->midtransOrderId = null;
+            $this->showMidtransPopup = false;
+
+            session()->flash('success', 'Pembayaran berhasil! Invoice: ' . $transaction->invoice_number);
+        } catch (\RuntimeException $e) {
+            session()->flash('error', $e->getMessage());
         }
     }
 

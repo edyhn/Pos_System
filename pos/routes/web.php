@@ -70,6 +70,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/activity-logs', [App\Http\Controllers\ActivityLogController::class, 'index'])
         ->name('activity-logs.index')->middleware('role:owner');
 
+    Route::prefix('discounts')->middleware('role:owner')->group(function () {
+        Route::get('/', function () { return view('discounts.index'); })->name('discounts.index');
+        Route::get('/create', function () { return view('discounts.create'); })->name('discounts.create');
+        Route::get('/{discount}/edit', function (\App\Models\Discount $discount) { return view('discounts.edit', compact('discount')); })->name('discounts.edit');
+    });
+
     Route::get('/transactions', [App\Http\Controllers\TransactionController::class, 'index'])
         ->name('transactions.index')->middleware('role:owner,cashier');
     Route::get('/transactions/{transaction}', [App\Http\Controllers\TransactionController::class, 'show'])

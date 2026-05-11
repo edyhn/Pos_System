@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
-use App\Models\Product;
-use App\Models\StockMovement;
-use App\Models\Subscription;
 use App\Services\MidtransService;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MidtransWebhookController extends Controller
 {
+    public function __construct(
+        private MidtransService $midtransService,
+        private StockService $stockService,
+    ) {}
+
     public function notification(Request $request)
     {
         try {
@@ -32,14 +34,12 @@ class MidtransWebhookController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'Invalid payload'], 400);
             }
 
-            $midtrans = app(MidtransService::class);
-
-            if (!$midtrans->verifySignature($orderId, $statusCode, $grossAmount, $signatureKey)) {
+            if (!$this->midtransService->verifySignature($orderId, $statusCode, $grossAmount, $signatureKey)) {
                 Log::warning('Midtrans webhook: invalid signature', ['order_id' => $orderId]);
                 return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 403);
             }
 
-            $transaction = Transaction::where('invoice_number', $orderId)->first();
+            $transaction = Transaction::with('items.product')->where('invoice_number', $orderId)->first();
 
             if (!$transaction) {
                 Log::warning('Midtrans webhook: transaction not found', ['order_id' => $orderId]);
@@ -57,48 +57,42 @@ class MidtransWebhookController extends Controller
                         return response()->json(['status' => 'ok', 'message' => 'Already processing']);
                     }
                     try {
-                        DB::transaction(function () use ($transaction) {
-                            $transaction->update([
-                                'status' => 'completed',
-                                'payment_amount' => $transaction->total_amount,
-                                'change_amount' => 0,
-                            ]);
+                        $transaction->update([
+                            'status' => 'completed',
+                            'payment_amount' => $transaction->total_amount,
+                            'change_amount' => 0,
+                        ]);
 
-                            if (!$transaction->items()->exists()) {
-                                Log::warning('Midtrans webhook: no items for transaction', ['order_id' => $orderId]);
-                                return;
+                        if (!$transaction->items()->exists()) {
+                            Log::warning('Midtrans webhook: no items for transaction', ['order_id' => $orderId]);
+                            return;
+                        }
+
+                        foreach ($transaction->items as $item) {
+                            $product = $item->product;
+                            if (!$product) continue;
+
+                            $this->stockService->decrementStock(
+                                $product,
+                                $item->quantity,
+                                'transaction',
+                                $transaction->id,
+                                $transaction->store_id,
+                                $transaction->user_id,
+                                'Penjualan Midtrans #' . $transaction->invoice_number,
+                            );
+
+                            if ($product->is_subscription) {
+                                $transaction->subscriptions()->create([
+                                    'store_id' => $transaction->store_id,
+                                    'product_id' => $item->product_id,
+                                    'customer_identifier' => $transaction->customer_name ?? 'Guest',
+                                    'start_date' => now(),
+                                    'end_date' => now()->addDays($product->subscription_days),
+                                    'status' => 'active',
+                                ]);
                             }
-
-                            foreach ($transaction->items as $item) {
-                                $product = Product::find($item->product_id);
-                                if ($product) {
-                                    $product->decrement('stock', $item->quantity);
-
-                                    StockMovement::create([
-                                        'store_id' => $transaction->store_id,
-                                        'product_id' => $item->product_id,
-                                        'user_id' => $transaction->user_id,
-                                        'reference_type' => 'transaction',
-                                        'reference_id' => $transaction->id,
-                                        'type' => 'out',
-                                        'quantity' => $item->quantity,
-                                        'note' => 'Penjualan Midtrans #' . $transaction->invoice_number,
-                                    ]);
-                                }
-
-                                if ($product && $product->is_subscription) {
-                                    Subscription::create([
-                                        'store_id' => $transaction->store_id,
-                                        'transaction_id' => $transaction->id,
-                                        'product_id' => $item->product_id,
-                                        'customer_identifier' => $transaction->customer_name ?? 'Guest',
-                                        'start_date' => now(),
-                                        'end_date' => now()->addDays($product->subscription_days),
-                                        'status' => 'active',
-                                    ]);
-                                }
-                            }
-                        });
+                        }
 
                         Log::info('Midtrans payment completed', ['order_id' => $orderId]);
                     } finally {

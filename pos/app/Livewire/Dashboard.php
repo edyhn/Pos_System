@@ -34,72 +34,79 @@ class Dashboard extends Component
         $storeId = $this->storeId;
 
         if ($user->isOwner()) {
-            $todayData = Transaction::byStore($storeId)
-                ->today()
-                ->where('status', 'completed')
-                ->selectRaw('COALESCE(SUM(total_amount), 0) as sales, COUNT(*) as count')
-                ->first();
+            $cacheKey = "dashboard.owner.{$storeId}";
+            $data = cache()->remember($cacheKey, 60, function () use ($storeId) {
+                $todayData = Transaction::byStore($storeId)
+                    ->today()
+                    ->where('status', 'completed')
+                    ->selectRaw('COALESCE(SUM(total_amount), 0) as sales, COUNT(*) as count')
+                    ->first();
 
-            $this->todaySales = $todayData->sales;
-            $this->todayTransactions = $todayData->count;
+                $pendingReprint = ReceiptReprintRequest::where('store_id', $storeId)
+                    ->where('status', 'pending')
+                    ->count();
 
-            $this->totalProducts = Product::byStore($storeId)
-                ->where('is_active', true)
-                ->count();
+                $pendingRefund = RefundRequest::where('store_id', $storeId)
+                    ->where('status', 'pending')
+                    ->count();
 
-            $pendingReprint = ReceiptReprintRequest::where('store_id', $storeId)
-                ->where('status', 'pending')
-                ->count();
+                return [
+                    'todaySales' => $todayData->sales,
+                    'todayTransactions' => $todayData->count,
+                    'totalProducts' => Product::byStore($storeId)->where('is_active', true)->count(),
+                    'pendingApprovals' => $pendingReprint + $pendingRefund,
+                    'draftPos' => PurchaseOrder::where('store_id', $storeId)
+                        ->where('status', 'draft')
+                        ->with('vendor')
+                        ->withCount('items')
+                        ->orderBy('created_at', 'desc')
+                        ->take(5)
+                        ->get(),
+                    'lowStockProducts' => Product::byStore($storeId)
+                        ->where('is_active', true)
+                        ->whereColumn('stock', '<=', 'min_stock')
+                        ->where('min_stock', '>', 0)
+                        ->orderBy('stock', 'asc')
+                        ->take(5)
+                        ->get(),
+                ];
+            });
 
-            $pendingRefund = RefundRequest::where('store_id', $storeId)
-                ->where('status', 'pending')
-                ->count();
-
-            $this->pendingApprovals = $pendingReprint + $pendingRefund;
-
-            $this->draftPos = PurchaseOrder::where('store_id', $storeId)
-                ->where('status', 'draft')
-                ->with('vendor')
-                ->withCount('items')
-                ->orderBy('created_at', 'desc')
-                ->take(5)
-                ->get();
-
-            $this->lowStockProducts = Product::byStore($storeId)
-                ->where('is_active', true)
-                ->whereColumn('stock', '<=', 'min_stock')
-                ->where('min_stock', '>', 0)
-                ->orderBy('stock', 'asc')
-                ->take(5)
-                ->get();
-
+            $this->todaySales = $data['todaySales'];
+            $this->todayTransactions = $data['todayTransactions'];
+            $this->totalProducts = $data['totalProducts'];
+            $this->pendingApprovals = $data['pendingApprovals'];
+            $this->draftPos = $data['draftPos'];
+            $this->lowStockProducts = $data['lowStockProducts'];
             $this->weeklyChartData = $this->getWeeklySales();
             $this->monthlyChartData = $this->getMonthlySales();
         } else {
-            $this->todaySales = Transaction::byStore($storeId)
-                ->today()
-                ->where('status', 'completed')
-                ->where('user_id', $user->id)
-                ->sum('total_amount');
+            $cacheKey = "dashboard.cashier.{$storeId}.{$user->id}";
+            $data = cache()->remember($cacheKey, 30, function () use ($storeId, $user) {
+                $pendingReprint = ReceiptReprintRequest::where('store_id', $storeId)
+                    ->where('user_id', $user->id)
+                    ->where('status', 'pending')
+                    ->count();
 
-            $this->todayTransactions = Transaction::byStore($storeId)
-                ->today()
-                ->where('status', 'completed')
-                ->where('user_id', $user->id)
-                ->count();
+                $pendingRefund = RefundRequest::where('store_id', $storeId)
+                    ->where('user_id', $user->id)
+                    ->where('status', 'pending')
+                    ->count();
 
-            $pendingReprint = ReceiptReprintRequest::where('store_id', $storeId)
-                ->where('user_id', $user->id)
-                ->where('status', 'pending')
-                ->count();
+                return [
+                    'todaySales' => Transaction::byStore($storeId)
+                        ->today()->where('status', 'completed')
+                        ->where('user_id', $user->id)->sum('total_amount'),
+                    'todayTransactions' => Transaction::byStore($storeId)
+                        ->today()->where('status', 'completed')
+                        ->where('user_id', $user->id)->count(),
+                    'pendingRequests' => $pendingReprint + $pendingRefund,
+                ];
+            });
 
-            $pendingRefund = RefundRequest::where('store_id', $storeId)
-                ->where('user_id', $user->id)
-                ->where('status', 'pending')
-                ->count();
-
-            $this->pendingRequests = $pendingReprint + $pendingRefund;
-
+            $this->todaySales = $data['todaySales'];
+            $this->todayTransactions = $data['todayTransactions'];
+            $this->pendingRequests = $data['pendingRequests'];
             $this->weeklyChartData = $this->getCashierWeeklySales();
         }
     }

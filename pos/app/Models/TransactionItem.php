@@ -12,6 +12,7 @@ class TransactionItem extends Model
     protected $fillable = [
         'transaction_id', 'product_id', 'product_name',
         'quantity', 'price', 'subtotal', 'is_taxed',
+        'discount_id', 'discount_amount', 'discount_name',
     ];
 
     protected function casts(): array
@@ -20,6 +21,7 @@ class TransactionItem extends Model
             'is_taxed' => 'boolean',
             'price' => 'decimal:2',
             'subtotal' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
         ];
     }
 
