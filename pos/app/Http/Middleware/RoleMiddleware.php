@@ -20,6 +20,8 @@ class RoleMiddleware
 
         $user = Auth::user();
 
+        $roles = collect($roles)->flatMap(fn($r) => explode(',', $r))->toArray();
+
         if (in_array($user->role, $roles)) {
             return $next($request);
         }

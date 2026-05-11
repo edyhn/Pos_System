@@ -29,7 +29,7 @@
 <body>
     <div class="header">
         <h1>LAPORAN STOK PRODUK</h1>
-        <p>{{ $store->name ?? 'Toko' }}{{ $store->address ? ' | ' . $store->address : '' }}{{ $store->phone ? ' | Telp: ' . $store->phone : '' }}</p>
+        <p>{{ $store?->name ?? 'Toko' }}{{ $store?->address ? ' | ' . $store->address : '' }}{{ $store?->phone ? ' | Telp: ' . $store->phone : '' }}</p>
         <p class="date">Tanggal cetak: {{ now()->format('d/m/Y H:i') }}</p>
     </div>
 

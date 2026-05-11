@@ -12,10 +12,13 @@ class Subscription extends Model
         'customer_identifier', 'start_date', 'end_date', 'status',
     ];
 
-    protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+        ];
+    }
 
     public function store(): BelongsTo
     {

@@ -50,8 +50,9 @@ class StockOpnameIndex extends Component
     {
         if (str_ends_with($key, '.actual_stock')) {
             $index = explode('.', $key)[0];
-            $item = &$this->opnameItems[$index];
-            $item['difference'] = (int) $item['actual_stock'] - (int) $item['system_stock'];
+            $actual = (int) ($this->opnameItems[$index]['actual_stock'] ?? 0);
+            $system = (int) ($this->opnameItems[$index]['system_stock'] ?? 0);
+            $this->opnameItems[$index]['difference'] = $actual - $system;
         }
     }
 

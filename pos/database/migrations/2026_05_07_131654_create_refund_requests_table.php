@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('condition_info');
             $table->decimal('refund_amount', 15, 2)->nullable();
-            $table->enum('refund_type', ['full', 'prorata'])->nullable();
+            $table->enum('refund_type', ['uang_kembali', 'tukar_barang'])->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('owner_note')->nullable();
             $table->timestamp('approved_at')->nullable();

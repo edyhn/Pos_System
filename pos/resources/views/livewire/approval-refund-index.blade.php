@@ -45,8 +45,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-600 mb-1">Tipe Refund</label>
                     <select wire:model="refundType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-                        <option value="prorata">Prorata</option>
-                        <option value="full">Full</option>
+                        <option value="uang_kembali">Uang Kembali</option>
+                        <option value="tukar_barang">Tukar Barang</option>
                     </select>
                 </div>
                 <div>

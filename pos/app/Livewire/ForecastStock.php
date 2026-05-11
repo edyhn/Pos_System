@@ -180,9 +180,14 @@ class ForecastStock extends Component
 
         $products = $query->with('category')->orderBy('name')->paginate(20);
 
+        $productIds = $products->pluck('id')->toArray();
+        $avgSalesBatch = !empty($productIds)
+            ? $service->getBatchDailySalesAvg($this->storeId, $productIds, 30)
+            : [];
+
         $forecasts = collect();
         foreach ($products as $product) {
-            $avgDailySales = $service->getProductDailySalesAvg($product, 30);
+            $avgDailySales = $avgSalesBatch[$product->id] ?? 0;
             $runout = $service->stockRunoutPrediction($product, $avgDailySales);
             $reorder = $service->reorderRecommendation($product, $avgDailySales, $this->leadTimeDays, $this->safetyStock);
 

@@ -27,7 +27,13 @@ class Cashier extends Component
     public $midtransOrderId = null;
     public $showMidtransPopup = false;
 
-    protected $listeners = ['productSelected', 'completeMidtransPayment'];
+    protected function getListeners(): array
+    {
+        return [
+            'productSelected',
+            'completeMidtransPayment',
+        ];
+    }
 
     public function mount()
     {

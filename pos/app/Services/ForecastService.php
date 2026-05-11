@@ -268,8 +268,30 @@ class ForecastService
 
         $totalQty = 0;
         foreach ($data as $day) {
-            $totalQty += is_object($day) ? ($day->qty ?? 0) : ($day['qty'] ?? 0);
+            $totalQty += $day['qty'] ?? 0;
         }
         return $totalQty / $days;
+    }
+
+    public function getBatchDailySalesAvg(int $storeId, array $productIds, int $days = 30): array
+    {
+        if (empty($productIds)) return [];
+
+        $salesData = DB::table('transaction_items')
+            ->join('transactions', 'transactions.id', '=', 'transaction_items.transaction_id')
+            ->where('transactions.store_id', $storeId)
+            ->where('transactions.status', 'completed')
+            ->whereIn('transaction_items.product_id', $productIds)
+            ->whereDate('transactions.created_at', '>=', now()->subDays($days))
+            ->selectRaw('transaction_items.product_id, SUM(transaction_items.quantity) as total_qty')
+            ->groupBy('transaction_items.product_id')
+            ->pluck('total_qty', 'product_id');
+
+        $result = [];
+        foreach ($productIds as $id) {
+            $totalQty = (int) ($salesData[$id] ?? 0);
+            $result[$id] = $totalQty / $days;
+        }
+        return $result;
     }
 }

@@ -7,6 +7,5 @@ return [
     'is_sanitized' => true,
     'is_3ds' => true,
     'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
-    'is_sandbox' => env('MIDTRANS_SANDBOX', true),
     'webhook_url' => env('APP_URL') . '/midtrans/webhook',
 ];

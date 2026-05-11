@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\MidtransWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,7 +12,7 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::post('midtrans/webhook', [App\Http\Controllers\MidtransWebhookController::class, 'notification'])
+Route::post('midtrans/webhook', [MidtransWebhookController::class, 'notification'])
     ->name('midtrans.webhook');
 
 Route::middleware('auth')->group(function () {
@@ -26,14 +27,19 @@ Route::middleware('auth')->group(function () {
     Route::resource('products', App\Http\Controllers\ProductController::class)
         ->middleware('role:owner');
     Route::resource('categories', App\Http\Controllers\CategoryController::class)
+        ->except('store', 'update', 'destroy', 'show')
         ->middleware('role:owner');
     Route::resource('vendors', App\Http\Controllers\VendorController::class)
+        ->except('store', 'update', 'destroy', 'show')
         ->middleware('role:owner');
     Route::resource('users', App\Http\Controllers\UserController::class)
+        ->except('store', 'update', 'destroy', 'show')
         ->middleware('role:owner');
     Route::resource('purchase-orders', App\Http\Controllers\PurchaseOrderController::class)
+        ->except('store', 'update', 'destroy')
         ->middleware('role:owner');
     Route::resource('stock-opname', App\Http\Controllers\StockOpnameController::class)
+        ->except('store', 'show', 'edit', 'update', 'destroy')
         ->middleware('role:owner');
 
     Route::get('/stock', [App\Http\Controllers\StockController::class, 'index'])

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
-use App\Models\TransactionItem;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Models\Subscription;

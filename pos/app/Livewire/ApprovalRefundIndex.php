@@ -23,7 +23,7 @@ class ApprovalRefundIndex extends Component
     public $showApproveForm = false;
     public $requestId;
     public $refundAmount = 0;
-    public $refundType = 'prorata';
+    public $refundType = 'uang_kembali';
     public $ownerNote = '';
 
     public function mount()
@@ -45,7 +45,7 @@ class ApprovalRefundIndex extends Component
     {
         $this->validate([
             'refundAmount' => 'required|numeric|min:0',
-            'refundType' => 'required|in:full,prorata',
+            'refundType' => 'required|in:uang_kembali,tukar_barang',
         ]);
 
         try {
@@ -68,7 +68,8 @@ class ApprovalRefundIndex extends Component
                     Subscription::where('transaction_id', $transaction->id)
                         ->update(['status' => 'refunded']);
 
-                    foreach ($transaction->items as $item) {
+                    $item = $req->transactionItem ?: $transaction->items->first();
+                    if ($item) {
                         Product::where('id', $item->product_id)->increment('stock', $item->quantity);
 
                         StockMovement::create([

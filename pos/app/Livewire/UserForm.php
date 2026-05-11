@@ -127,7 +127,6 @@ class UserForm extends Component
             \App\Services\ActivityLogger::log('update', 'Memperbarui pengguna: ' . $this->name);
             session()->flash('message', 'Pengguna berhasil diupdate.');
         } else {
-            $data['password'] ??= Hash::make($this->password);
             User::create($data);
             \App\Services\ActivityLogger::log('create', 'Menambahkan pengguna baru: ' . $this->name . ' (' . $this->user_id . ')');
             session()->flash('message', 'Pengguna berhasil ditambahkan. ID: ' . $this->user_id);

@@ -27,7 +27,8 @@ class ApiTransactionController extends Controller
 
     public function show(Request $request, Transaction $transaction): JsonResponse
     {
-        if ($transaction->store_id !== $request->user()->store_id) {
+        $userStoreId = $request->user()->store_id;
+        if ($userStoreId !== null && $transaction->store_id !== $userStoreId) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
