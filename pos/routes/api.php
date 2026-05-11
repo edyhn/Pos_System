@@ -5,10 +5,14 @@ use App\Http\Controllers\Api\ApiCategoryController;
 use App\Http\Controllers\Api\ApiProductController;
 use App\Http\Controllers\Api\ApiTransactionController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
-Route::post('/login', [ApiAuthController::class, 'login']);
+RateLimiter::for('api', fn() => Limit::perMinute(60)->by(optional(request()->user())->id ?: request()->ip()));
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::post('/login', [ApiAuthController::class, 'login'])->middleware('throttle:10,1');
+
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::post('/logout', [ApiAuthController::class, 'logout']);
     Route::get('/user', [ApiAuthController::class, 'user']);
 

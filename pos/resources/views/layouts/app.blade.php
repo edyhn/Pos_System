@@ -208,7 +208,7 @@
                     <div class="hidden lg:flex items-center gap-3 pl-3 border-l border-gray-200">
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-800">{{ $user->name }}</p>
-                            <p class="text-xs text-gray-400">{{ $user->user_id }}</p>
+                            <p class="text-xs text-gray-400">{{ $user->email }}</p>
                         </div>
                         <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm overflow-hidden">
                             @if($user->photo)

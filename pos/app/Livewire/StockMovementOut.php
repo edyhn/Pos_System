@@ -69,7 +69,7 @@ class StockMovementOut extends Component
         $this->validate([
             'product_id' => ['required', \Illuminate\Validation\Rule::exists('products', 'id')->where(fn($q) => $q->where('store_id', $this->storeId))],
             'quantity' => 'required|integer|min:1',
-            'referenceType' => 'required|in:penjualan,rusak,expired,lainnya',
+            'referenceType' => 'required|in:rusak,expired,lainnya',
             'note' => 'required|min:3',
         ]);
 

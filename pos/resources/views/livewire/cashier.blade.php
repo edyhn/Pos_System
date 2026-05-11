@@ -53,8 +53,12 @@
                                 <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">HABIS</span>
                             </div>
                         @endif
-                        <div class="w-full h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg mb-2 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                        <div class="w-full h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                            @if($product->image)
+                                <img src="{{ Storage::url($product->image) }}" class="w-full h-full object-contain p-1">
+                            @else
+                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            @endif
                         </div>
                         <p class="font-medium text-gray-800 text-sm truncate group-hover:text-blue-600 transition">{{ $product->name }}</p>
                         <p class="text-blue-600 font-bold mt-0.5">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
@@ -199,11 +203,13 @@
                     @endif
                 @endif
 
-                <button wire:click="checkout"
+                <button wire:click="checkout" wire:loading.attr="disabled" wire:target="checkout"
                         class="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition text-sm flex items-center justify-center gap-2 {{ empty($cart) ? 'opacity-50 cursor-not-allowed' : '' }}"
                         {{ empty($cart) ? 'disabled' : '' }}>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
-                    Bayar
+                    <svg wire:loading.remove wire:target="checkout" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+                    <svg wire:loading wire:target="checkout" class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <span wire:loading.remove wire:target="checkout">Bayar</span>
+                    <span wire:loading wire:target="checkout">Memproses...</span>
                 </button>
             </div>
         </div>
@@ -231,9 +237,7 @@
         });
     </script>
 
-    @if($payment_method === 'midtrans')
-        <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
-    @endif
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
 
     {{-- Print Modal --}}
     <div id="printModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">

@@ -71,7 +71,7 @@ class ApprovalReceiptIndex extends Component
     public function render()
     {
         $query = ReceiptReprintRequest::where('store_id', $this->storeId)
-            ->with('transaction', 'user');
+            ->with('transaction', 'user', 'approver');
 
         if ($this->statusFilter) {
             $query->where('status', $this->statusFilter);

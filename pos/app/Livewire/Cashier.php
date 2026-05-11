@@ -11,6 +11,7 @@ use App\Models\StockMovement;
 use Livewire\Component;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Services\MidtransService;
 
 class Cashier extends Component
@@ -148,10 +149,17 @@ class Cashier extends Component
             }
         }
 
-        DB::transaction(function () use ($products) {
-            $query = Transaction::whereDate('created_at', today())->where('store_id', $this->storeId);
-            $count = DB::connection()->getDriverName() === 'sqlite' ? $query->count() : $query->lockForUpdate()->count();
-            $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
+        $lock = Cache::lock('invoice-number-' . date('Ymd'), 10);
+        $lock->block(5);
+        try {
+            $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad(
+                Transaction::whereDate('created_at', today())->where('store_id', $this->storeId)->count() + 1, 4, '0', STR_PAD_LEFT
+            );
+        } finally {
+            $lock->release();
+        }
+
+        DB::transaction(function () use ($products, $invoiceNumber) {
 
             $transaction = Transaction::create([
                 'store_id' => $this->storeId,
@@ -319,6 +327,18 @@ class Cashier extends Component
                     return true;
                 }
 
+                $midtrans = app(MidtransService::class);
+                try {
+                    $statusResponse = $midtrans->checkStatus($this->midtransOrderId);
+                    $txStatus = $statusResponse->transaction_status ?? '';
+                    if (!in_array($txStatus, ['settlement', 'capture'])) {
+                        session()->flash('error', 'Pembayaran Midtrans belum selesai. Status: ' . $txStatus);
+                        return false;
+                    }
+                } catch (\Exception $e) {
+                    Log::info('Midtrans status check failed, proceeding anyway', ['error' => $e->getMessage()]);
+                }
+
                 DB::transaction(function () use ($products) {
                     $invoiceNumber = $this->midtransOrderId;
 
@@ -421,7 +441,7 @@ class Cashier extends Component
         }
 
         $products = $query->orderBy('name')->get();
-        $categories = Category::where('store_id', $this->storeId)->get();
+        $categories = Category::where('store_id', $this->storeId)->where('is_active', true)->get();
 
         return view('livewire.cashier', compact('products', 'categories'));
     }

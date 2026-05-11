@@ -8,6 +8,7 @@ use App\Models\Vendor;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ProductForm extends Component
 {
@@ -150,6 +151,8 @@ class ProductForm extends Component
 
         if ($this->image) {
             $imagePath = $this->image->store('products', 'public');
+            $fullPath = storage_path('app/public/' . $imagePath);
+            Image::read($fullPath)->scale(width: 600)->save($fullPath, quality: 80);
         }
 
         $data = [

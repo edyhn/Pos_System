@@ -37,13 +37,13 @@ class Subscription extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'active')->where('end_date', '>=', today());
+        return $query->where('status', 'active')->where('end_date', '>=', now()->startOfDay());
     }
 
     public function scopeExpired($query)
     {
         return $query->where(function ($q) {
-            $q->where('end_date', '<', today())->orWhere('status', 'expired');
-        });
+            $q->where('end_date', '<', now()->startOfDay())->where('status', 'active');
+        })->orWhere('status', 'expired');
     }
 }

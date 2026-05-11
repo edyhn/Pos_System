@@ -143,6 +143,28 @@ Creates: 2 stores, 4 users, 5 categories, ~19 products, 3 vendors, POs, stock mo
 | KSR001  | kasir123  | cashier | Toko Pusat   |
 | KSR002  | kasir123  | cashier | Toko Cabang  |
 
+## Changelog
+
+### 2026-05-11 — Performance & Security Fixes
+
+- **Fix: Race condition** — Invoice number generation now uses cache lock to prevent duplicate invoice numbers on concurrent checkout
+- **Fix: Midtrans double-processing** — Verifikasi status ke Midtrans sebelum menyelesaikan transaksi dari callback frontend
+- **Fix: SQLite compatibility** — Monthly sales chart query sekarang database-agnostic (tidak hardcoded strftime)
+- **Fix: XSS prevention** — Export links hanya melewatkan parameter yang diizinkan (date_from, date_to, store_id)
+- **Fix: Category filter** — Dropdown kategori di kasir sekarang hanya menampilkan kategori aktif
+- **Fix: Stock Movement Out** — Hapus opsi "penjualan" (sudah otomatis tercatat dari transaksi)
+- **Fix: Subscription scopes** — Perbaiki konsistensi scopeActive/scopeExpired
+- **Fix: Eager loading** — Approval components sekarang eager load relasi approver
+- **Fix: User ID sidebar** — Tampilkan email bukan user_id yang mungkin null
+- **Fix: Loading state** — Tombol Bayar sekarang punya loading spinner dan disabled state
+- **Fix: Midtrans Snap.js** — Script Snap.js di-load selalu (tidak kondisional) agar tersedia saat pertama kali dipilih
+- **Soft Deletes** — Tambah soft deletes ke model: Category, Product, Vendor, User, Store
+- **Indexing** — Tambah composite indexes di stock_movements untuk optimasi query
+- **Rate Limiting** — API routes sekarang punya rate limiting (60/min auth, 10/min login)
+- **Image Optimization** — Upload produk di-resize ke max width 600px
+- **Cache Optimization** — ForecastStock summary di-cache 10 menit hindari duplicate heavy query
+- **Migration baru**: `add_soft_deletes_to_tables`, `add_composite_indexes_to_stock_movements`
+
 ## Testing
 
 ```bash

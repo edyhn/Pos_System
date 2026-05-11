@@ -168,10 +168,14 @@ class Dashboard extends Component
         $cacheKey = "dashboard.monthly.{$storeId}";
 
         $rows = cache()->remember($cacheKey, 3600, function () use ($storeId) {
+            $driver = DB::connection()->getDriverName();
+            $monthExpr = $driver === 'sqlite'
+                ? "CAST(strftime('%m', created_at) AS INTEGER)"
+                : 'MONTH(created_at)';
             return Transaction::byStore($storeId)
                 ->where('status', 'completed')
                 ->whereYear('created_at', now()->year)
-                ->selectRaw("strftime('%m', created_at) + 0 as month, SUM(total_amount) as total")
+                ->selectRaw("{$monthExpr} as month, SUM(total_amount) as total")
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')
