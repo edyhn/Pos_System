@@ -25,6 +25,7 @@ Route::middleware('auth')->group(function () {
     })->name('cashier');
 
     Route::resource('products', App\Http\Controllers\ProductController::class)
+        ->except('store', 'update', 'destroy')
         ->middleware('role:owner');
     Route::resource('categories', App\Http\Controllers\CategoryController::class)
         ->except('store', 'update', 'destroy', 'show')
@@ -85,7 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/print/receipt/{transaction}', [App\Http\Controllers\PrintController::class, 'receipt'])
         ->name('print.receipt')->middleware('role:owner,cashier');
     Route::get('/print/direct/{transaction}', [App\Http\Controllers\PrintController::class, 'directPrint'])
-        ->name('print.direct')->middleware('role:owner');
+        ->name('print.direct')->middleware('role:owner,cashier');
 
     Route::get('/reports/sales/export-excel', [App\Http\Controllers\ReportController::class, 'exportSalesExcel'])
         ->name('reports.sales.export-excel')->middleware('role:owner');
@@ -95,4 +96,6 @@ Route::middleware('auth')->group(function () {
         ->name('stock.export-excel')->middleware('role:owner');
     Route::get('/stock/export-pdf', [App\Http\Controllers\ReportController::class, 'exportStockPdf'])
         ->name('stock.export-pdf')->middleware('role:owner');
+    Route::get('/reports/tax/export-pdf', [App\Http\Controllers\ReportController::class, 'exportTaxPdf'])
+        ->name('reports.tax.export-pdf')->middleware('role:owner');
 });

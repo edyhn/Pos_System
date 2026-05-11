@@ -94,6 +94,40 @@ class ProductForm extends Component
         }
     }
 
+    public function updatedCategoryId($value)
+    {
+        if (!$this->isEdit && $value) {
+            $this->generateSku($value);
+        }
+    }
+
+    protected function generateSku($categoryId)
+    {
+        $category = Category::find($categoryId);
+        if (!$category) return;
+
+        $name = $category->name;
+        $prefix = strtoupper(substr($name, 0, 3));
+        if (strlen($prefix) < 3) {
+            $prefix = str_pad($prefix, 3, strtoupper($name[0]));
+        }
+
+        $existing = Product::where('store_id', $this->storeId)
+            ->where('sku', 'like', $prefix . '-%')
+            ->pluck('sku');
+
+        $max = 0;
+        $pattern = '/^' . preg_quote($prefix, '/') . '-(\d+)$/';
+        foreach ($existing as $sku) {
+            if (preg_match($pattern, $sku, $m)) {
+                $num = (int) $m[1];
+                if ($num > $max) $max = $num;
+            }
+        }
+
+        $this->sku = $prefix . '-' . str_pad($max + 1, 3, '0', STR_PAD_LEFT);
+    }
+
     public function updatedName($value)
     {
         if (!$this->isEdit) {

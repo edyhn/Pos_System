@@ -149,7 +149,8 @@ class Cashier extends Component
         }
 
         DB::transaction(function () use ($products) {
-            $count = Transaction::whereDate('created_at', today())->where('store_id', $this->storeId)->lockForUpdate()->count();
+            $query = Transaction::whereDate('created_at', today())->where('store_id', $this->storeId);
+            $count = DB::connection()->getDriverName() === 'sqlite' ? $query->count() : $query->lockForUpdate()->count();
             $invoiceNumber = 'INV-' . date('Ymd') . '-' . str_pad($count + 1, 4, '0', STR_PAD_LEFT);
 
             $transaction = Transaction::create([

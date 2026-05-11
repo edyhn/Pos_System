@@ -87,7 +87,7 @@
                 <tbody class="divide-y divide-gray-100">
                     @foreach ($transaction->subscriptions as $sub)
                         <tr class="text-sm">
-                            <td class="px-6 py-3 text-gray-800">{{ $sub->product->name }}</td>
+                            <td class="px-6 py-3 text-gray-800">{{ $sub->product?->name ?? '-' }}</td>
                             <td class="px-6 py-3 text-gray-600">{{ $sub->customer_identifier }}</td>
                             <td class="px-6 py-3 text-gray-600">{{ $sub->start_date->format('d/m/Y') }}</td>
                             <td class="px-6 py-3 text-gray-600">{{ $sub->end_date->format('d/m/Y') }}</td>

@@ -40,10 +40,24 @@ class ForecastStock extends Component
         return \App\Models\Category::where('store_id', $this->storeId)->where('is_active', true)->orderBy('name')->get();
     }
 
+    public function getProductIdsWithAutoPo(): array
+    {
+        return PoItem::whereHas('purchaseOrder', function ($q) {
+            $q->where('store_id', $this->storeId)
+              ->where('is_auto_draft', true)
+              ->where('status', 'draft');
+        })->pluck('product_id')->toArray();
+    }
+
     public function previewPO()
     {
         $service = new ForecastService();
-        $products = Product::with('vendor')->where('store_id', $this->storeId)->where('is_active', true)->get();
+        $excludeIds = $this->getProductIdsWithAutoPo();
+        $products = Product::with('vendor')
+            ->where('store_id', $this->storeId)
+            ->where('is_active', true)
+            ->whereNotIn('id', $excludeIds)
+            ->get();
 
         $groups = [];
         $count = 0;
@@ -181,6 +195,7 @@ class ForecastStock extends Component
         $products = $query->with('category')->orderBy('name')->paginate(20);
 
         $productIds = $products->pluck('id')->toArray();
+        $productIdsWithAutoPo = $this->getProductIdsWithAutoPo();
         $avgSalesBatch = !empty($productIds)
             ? $service->getBatchDailySalesAvg($this->storeId, $productIds, 30)
             : [];
@@ -191,6 +206,7 @@ class ForecastStock extends Component
             $runout = $service->stockRunoutPrediction($product, $avgDailySales);
             $reorder = $service->reorderRecommendation($product, $avgDailySales, $this->leadTimeDays, $this->safetyStock);
 
+            $hasAutoPo = in_array($product->id, $productIdsWithAutoPo);
             $forecasts->push((object) [
                 'product' => $product,
                 'avg_daily_sales' => $avgDailySales,
@@ -200,7 +216,8 @@ class ForecastStock extends Component
                 'estimated_date' => $runout['estimated_date'],
                 'status' => $runout['status'],
                 'recommended_qty' => $reorder['recommended_qty'],
-                'needs_reorder' => $reorder['recommended_qty'] > 0,
+                'needs_reorder' => $reorder['recommended_qty'] > 0 && !$hasAutoPo,
+                'has_auto_po' => $hasAutoPo,
             ]);
         }
 
@@ -214,16 +231,49 @@ class ForecastStock extends Component
             $forecasts = $forecasts->sortByDesc('recommended_qty');
         }
 
-        $summary = [
-            'total' => $forecasts->count(),
-            'kritis' => $forecasts->where('status', 'kritis')->count(),
-            'menipis' => $forecasts->where('status', 'menipis')->count(),
-            'habis' => $forecasts->where('status', 'habis')->count(),
-            'aman' => $forecasts->where('status', 'aman')->count(),
-            'needs_reorder' => $forecasts->where('needs_reorder', true)->count(),
-            'total_reorder_qty' => $forecasts->where('needs_reorder', true)->sum('recommended_qty'),
-        ];
+        $summary = $this->computeFullSummary($service);
 
         return view('livewire.forecast-stock', compact('forecasts', 'summary', 'products'));
+    }
+
+    private function computeFullSummary(ForecastService $service): array
+    {
+        $allProducts = Product::where('store_id', $this->storeId)->where('is_active', true)->get();
+        $allIds = $allProducts->pluck('id')->toArray();
+        $productIdsWithAutoPo = $this->getProductIdsWithAutoPo();
+        $allAvgSales = !empty($allIds)
+            ? $service->getBatchDailySalesAvg($this->storeId, $allIds, 30)
+            : [];
+
+        $summary = [
+            'total' => $allProducts->count(),
+            'kritis' => 0,
+            'menipis' => 0,
+            'habis' => 0,
+            'aman' => 0,
+            'has_auto_po' => 0,
+            'needs_reorder' => 0,
+            'total_reorder_qty' => 0,
+        ];
+
+        foreach ($allProducts as $product) {
+            $avgDailySales = $allAvgSales[$product->id] ?? 0;
+            $runout = $service->stockRunoutPrediction($product, $avgDailySales);
+            $reorder = $service->reorderRecommendation($product, $avgDailySales, $this->leadTimeDays, $this->safetyStock);
+            $hasAutoPo = in_array($product->id, $productIdsWithAutoPo);
+
+            $summary[$runout['status']]++;
+
+            if ($hasAutoPo) {
+                $summary['has_auto_po']++;
+            }
+
+            if ($reorder['recommended_qty'] > 0 && !$hasAutoPo) {
+                $summary['needs_reorder']++;
+                $summary['total_reorder_qty'] += $reorder['recommended_qty'];
+            }
+        }
+
+        return $summary;
     }
 }

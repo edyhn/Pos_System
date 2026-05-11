@@ -19,6 +19,13 @@
                 <label class="block text-xs font-medium text-gray-500 mb-1">Sampai</label>
                 <input type="date" wire:model="dateTo" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
             </div>
+            <div class="flex items-end gap-2 ml-auto">
+                <a href="{{ route('reports.tax.export-pdf', ['date_from' => $dateFrom, 'date_to' => $dateTo]) }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition text-sm font-medium border border-red-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v6a1 1 0 001 1h6"/></svg>
+                    Export PDF
+                </a>
+            </div>
         </div>
     </div>
 

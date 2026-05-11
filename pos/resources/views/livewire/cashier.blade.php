@@ -170,8 +170,10 @@
                 </div>
 
                 @if($payment_method === 'cash')
-                    <div>
-                        <input type="number" wire:model.live="payment_amount" placeholder="Jumlah bayar"
+                    <div x-data="{ formatted: '{{ $payment_amount > 0 ? number_format($payment_amount, 0, ',', '.') : '' }}' }">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('payment_amount', n); } else { $wire.set('payment_amount', 0); }"
+                               placeholder="Jumlah bayar"
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
                         @if($payment_amount > 0 && $payment_amount >= $this->total)
                             <div class="flex justify-between items-center mt-2 px-3 py-2 bg-emerald-50 rounded-lg">

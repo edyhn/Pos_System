@@ -240,7 +240,8 @@ class ForecastService
 
         if ($avgDailySales <= 0) {
             $minStock = $product->min_stock ?? 0;
-            $recommended = $stock < $minStock ? $minStock - $stock : 0;
+            $targetStock = max($minStock, $safetyStock);
+            $recommended = $stock < $targetStock ? $targetStock - $stock : 0;
             return [
                 'recommended_qty' => max(0, $recommended),
                 'safety_stock' => $safetyStock,
@@ -268,7 +269,7 @@ class ForecastService
 
         $totalQty = 0;
         foreach ($data as $day) {
-            $totalQty += $day['qty'] ?? 0;
+            $totalQty += is_object($day) ? ($day->qty ?? 0) : ($day['qty'] ?? 0);
         }
         return $totalQty / $days;
     }

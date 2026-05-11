@@ -26,7 +26,6 @@ class Dashboard extends Component
     public function mount()
     {
         $this->storeId = auth()->user()->store_id;
-        $this->loadData();
     }
 
     public function loadData()
@@ -172,7 +171,7 @@ class Dashboard extends Component
             return Transaction::byStore($storeId)
                 ->where('status', 'completed')
                 ->whereYear('created_at', now()->year)
-                ->selectRaw('MONTH(created_at) as month, SUM(total_amount) as total')
+                ->selectRaw("strftime('%m', created_at) + 0 as month, SUM(total_amount) as total")
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')
@@ -195,6 +194,7 @@ class Dashboard extends Component
 
     public function render()
     {
+        $this->loadData();
         return view('livewire.dashboard');
     }
 }

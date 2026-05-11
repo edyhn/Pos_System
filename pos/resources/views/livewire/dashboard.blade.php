@@ -1,4 +1,4 @@
-<div>
+<div wire:poll.30s>
     @php $user = auth()->user(); @endphp
 
     @if($user->isOwner())
@@ -47,7 +47,7 @@
         </div>
 
         {{-- Charts --}}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6" wire:ignore>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-sm font-semibold text-gray-800">Penjualan 7 Hari</h2>
@@ -213,7 +213,7 @@
             </a>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6" wire:ignore>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-sm font-semibold text-gray-800">Penjualan Saya 7 Hari</h2>
                 <span class="text-xs text-gray-400">Line Chart</span>

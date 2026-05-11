@@ -75,10 +75,11 @@ class StockMovementOut extends Component
 
         $success = false;
         DB::transaction(function () use (&$success) {
-            $product = Product::where('store_id', $this->storeId)
-                ->where('id', $this->product_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $query = Product::where('store_id', $this->storeId)
+                ->where('id', $this->product_id);
+            $product = DB::connection()->getDriverName() === 'sqlite'
+                ? $query->firstOrFail()
+                : $query->lockForUpdate()->firstOrFail();
 
             if ($this->quantity > $product->stock) {
                 session()->flash('error', 'Stok tidak mencukupi. Stok saat ini: ' . $product->stock);

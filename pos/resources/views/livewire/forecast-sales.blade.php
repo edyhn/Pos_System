@@ -149,7 +149,7 @@
                             <div class="flex items-center gap-2">
                                 <span class="w-16 text-sm text-gray-600">{{ $days[$i] ?? 'Hari ' . ($i+1) }}</span>
                                 <div class="flex-1 bg-gray-100 rounded-full h-4">
-                                    @php $maxVal = !empty($seasonalValues) ? max($seasonalValues) : 1; @endphp
+                                    @php $maxVal = !empty($seasonalValues) ? max($seasonalValues) : 1; $maxVal = $maxVal > 0 ? $maxVal : 1; @endphp
                                     <div class="bg-blue-500 h-4 rounded-full" style="width: {{ ($val / $maxVal) * 100 }}%"></div>
                                 </div>
                                 <span class="text-sm font-medium text-gray-700 w-24 text-right">Rp {{ number_format($val, 0, ',', '.') }}</span>

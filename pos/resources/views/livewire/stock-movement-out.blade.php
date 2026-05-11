@@ -42,7 +42,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Produk <span class="text-red-500">*</span></label>
                     <input type="text" wire:model.live.debounce="productSearch" placeholder="Cari produk..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mb-2 bg-white">
-                    <select wire:model="product_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                    <select wire:model.live="product_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                         <option value="">Pilih Produk</option>
                         @foreach ($this->products as $p)
                             <option value="{{ $p->id }}">{{ $p->name }} (SKU: {{ $p->sku }}, Stok: {{ $p->stock }})</option>
@@ -52,12 +52,16 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="quantity" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white" min="1">
+                    <div x-data="{ formatted: '' }">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('quantity', n); } else { $wire.set('quantity', 0); }"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                    </div>
                     @error('quantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Referensi</label>
-                    <select wire:model="referenceType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                    <select wire:model.live="referenceType" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                         <option value="penjualan">Penjualan</option>
                         <option value="rusak">Rusak</option>
                         <option value="expired">Expired</option>

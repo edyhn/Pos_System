@@ -23,6 +23,35 @@ class ReportController extends Controller
         return view('reports.tax');
     }
 
+    public function exportTaxPdf(Request $request)
+    {
+        $storeId = $request->store_id ?? auth()->user()->store_id;
+        $query = Transaction::with('items.product')
+            ->where('status', 'completed')
+            ->where('tax_amount', '>', 0)
+            ->where('store_id', $storeId);
+
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $transactions = $query->latest()->get();
+        $store = Store::find($storeId);
+
+        $pdf = Pdf::loadView('reports.tax-pdf', [
+            'transactions' => $transactions,
+            'dateFrom' => $request->date_from,
+            'dateTo' => $request->date_to,
+            'store' => $store,
+        ]);
+
+        return $pdf->download('laporan-pajak.pdf');
+    }
+
     public function exportSalesExcel(Request $request)
     {
         $storeId = $request->store_id ?? auth()->user()->store_id;

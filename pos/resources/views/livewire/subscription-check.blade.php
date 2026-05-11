@@ -29,8 +29,8 @@
                         @endphp
                         <tr class="hover:bg-gray-50 text-sm">
                             <td class="px-4 py-3 text-gray-800">{{ $sub->customer_identifier ?? '-' }}</td>
-                            <td class="px-4 py-3 text-gray-800">{{ $sub->product->name }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ $sub->transaction->invoice_number }}</td>
+                            <td class="px-4 py-3 text-gray-800">{{ $sub->product?->name ?? '-' }}</td>
+                            <td class="px-4 py-3 text-gray-500">{{ $sub->transaction?->invoice_number ?? '-' }}</td>
                             <td class="px-4 py-3 text-gray-500">{{ $sub->start_date->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 text-gray-500">{{ $sub->end_date->format('d/m/Y') }}</td>
                             <td class="px-4 py-3 font-bold {{ $daysLeft <= 0 ? 'text-red-600' : ($daysLeft <= 3 ? 'text-yellow-600' : 'text-green-600') }}">

@@ -22,7 +22,7 @@
         </button>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-7 gap-3 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-3 text-center">
             <p class="text-xs font-medium text-gray-500">Total Produk</p>
             <p class="text-xl font-bold text-gray-800">{{ $summary['total'] }}</p>
@@ -42,6 +42,10 @@
         <div class="bg-white rounded-xl shadow-sm border border-green-200 p-3 text-center">
             <p class="text-xs font-medium text-green-500">Aman</p>
             <p class="text-xl font-bold text-green-600">{{ $summary['aman'] }}</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-cyan-200 p-3 text-center">
+            <p class="text-xs font-medium text-cyan-600">Ada Draft PO</p>
+            <p class="text-xl font-bold text-cyan-600">{{ $summary['has_auto_po'] }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-blue-200 p-3 text-center">
             <p class="text-xs font-medium text-gray-500">Perlu Reorder</p>
@@ -149,7 +153,12 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 text-right">
-                                @if($f->recommended_qty > 0)
+                                @if($f->has_auto_po)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-cyan-100 text-cyan-700 text-xs font-medium rounded-full">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Draft PO
+                                    </span>
+                                @elseif($f->recommended_qty > 0)
                                     <span class="font-bold text-blue-600">{{ $f->recommended_qty }}</span>
                                 @else
                                     <span class="text-gray-400">-</span>

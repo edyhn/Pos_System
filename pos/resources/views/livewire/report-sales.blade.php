@@ -34,7 +34,7 @@
             @if($stores)
                 <div>
                     <label class="block text-xs font-medium text-gray-500 mb-1">Cabang</label>
-                    <select wire:model="storeFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                    <select wire:model.live="storeFilter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
                         <option value="">Semua Cabang</option>
                         @foreach ($stores as $s)
                             <option value="{{ $s->id }}">{{ $s->name }}</option>

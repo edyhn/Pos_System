@@ -91,7 +91,7 @@ class MidtransWebhookController extends Controller
                                         'store_id' => $transaction->store_id,
                                         'transaction_id' => $transaction->id,
                                         'product_id' => $item->product_id,
-                                        'customer_identifier' => $transaction->customer_name,
+                                        'customer_identifier' => $transaction->customer_name ?? 'Guest',
                                         'start_date' => now(),
                                         'end_date' => now()->addDays($product->subscription_days),
                                         'status' => 'active',

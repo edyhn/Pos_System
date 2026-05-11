@@ -38,7 +38,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                    <select wire:model="category_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('category_id') border-red-500 @enderror">
+                    <select wire:model.live="category_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('category_id') border-red-500 @enderror">
                         <option value="">Pilih Kategori</option>
                         @foreach ($categories as $cat)
                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -57,7 +57,12 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
-                    <input type="text" wire:model="sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('sku') border-red-500 @enderror">
+                    <div class="relative">
+                        <input type="text" wire:model="sku" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('sku') border-red-500 @enderror">
+                        @if(!$isEdit)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-blue-400 font-medium">otomatis</span>
+                        @endif
+                    </div>
                     @error('sku') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -66,27 +71,39 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Jual <span class="text-red-500">*</span></label>
-                    <div class="relative">
+                    <div class="relative" x-data="{ formatted: '{{ $price ? number_format($price, 0, ',', '.') : '' }}' }">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">Rp</span>
-                        <input type="number" wire:model="price" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('price') border-red-500 @enderror">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('price', n); } else { $wire.set('price', 0); }"
+                               class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('price') border-red-500 @enderror">
                     </div>
                     @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Harga Modal</label>
-                    <div class="relative">
+                    <div class="relative" x-data="{ formatted: '{{ $cost_price ? number_format($cost_price, 0, ',', '.') : '' }}' }">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">Rp</span>
-                        <input type="number" wire:model="cost_price" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('cost_price', n); } else { $wire.set('cost_price', 0); }"
+                               class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Stok Awal</label>
-                    <input type="number" wire:model="stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('stock') border-red-500 @enderror">
+                    <div x-data="{ formatted: '{{ $stock ? number_format($stock, 0, ',', '.') : '' }}' }">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('stock', n); } else { $wire.set('stock', 0); }"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('stock') border-red-500 @enderror">
+                    </div>
                     @error('stock') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Minimal Stok</label>
-                    <input type="number" wire:model="min_stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                    <div x-data="{ formatted: '{{ $min_stock ? number_format($min_stock, 0, ',', '.') : '' }}' }">
+                        <input type="text" x-model="formatted"
+                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('min_stock', n); } else { $wire.set('min_stock', 0); }"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                    </div>
                     <p class="text-[11px] text-gray-400 mt-1">Trigger auto PO saat stok di bawah ini</p>
                 </div>
                 <div>
