@@ -12,8 +12,8 @@ class Transaction extends Model
     use HasFactory;
     protected $fillable = [
         'store_id', 'user_id', 'invoice_number', 'customer_name',
-        'subtotal', 'tax_amount', 'total_amount', 'payment_amount', 'change_amount',
-        'payment_method', 'status', 'notes',
+        'subtotal', 'tax_amount', 'discount_amount', 'total_amount', 'payment_amount', 'change_amount',
+        'payment_method', 'reference_number', 'status', 'notes',
     ];
 
     protected function casts(): array
@@ -21,6 +21,7 @@ class Transaction extends Model
         return [
             'subtotal' => 'decimal:2',
             'tax_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'payment_amount' => 'decimal:2',
             'change_amount' => 'decimal:2',
@@ -64,6 +65,6 @@ class Transaction extends Model
 
     public function scopeToday($query)
     {
-        return $query->whereDate('created_at', today());
+        return $query->where('created_at', '>=', today());
     }
 }

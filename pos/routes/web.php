@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\MidtransWebhookController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -12,8 +11,6 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-Route::post('midtrans/webhook', [MidtransWebhookController::class, 'notification'])
-    ->name('midtrans.webhook');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {

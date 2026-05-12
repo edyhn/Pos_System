@@ -3,11 +3,11 @@
 namespace App\Livewire;
 
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Product;
 use App\Models\Transaction;
 use Livewire\Component;
 use App\Services\CheckoutService;
-use App\Services\MidtransService;
 
 class Cashier extends Component
 {
@@ -19,15 +19,13 @@ class Cashier extends Component
     public $payment_method = 'cash';
     public $payment_amount = 0;
     public $tax_enabled = false;
-    public $midtransSnapToken = null;
-    public $midtransOrderId = null;
-    public $showMidtransPopup = false;
+    public $barcode = '';
+    public $reference_number = '';
 
     protected function getListeners(): array
     {
         return [
             'productSelected',
-            'completeMidtransPayment',
         ];
     }
 
@@ -68,6 +66,28 @@ class Cashier extends Component
         $this->cart = array_values($this->cart);
     }
 
+    public function scanBarcode(): void
+    {
+        $barcode = trim($this->barcode);
+        if (empty($barcode)) return;
+
+        $product = Product::where('store_id', $this->storeId)
+            ->where('is_active', true)
+            ->where('sku', $barcode)
+            ->first();
+
+        if (!$product) {
+            session()->flash('error', "Produk dengan SKU '$barcode' tidak ditemukan.");
+            $this->barcode = '';
+            return;
+        }
+
+        $this->addToCart($product->id);
+        $this->barcode = '';
+
+        $this->dispatch('barcodeScanned', productName: $product->name);
+    }
+
     public function updateQuantity($index, $quantity): void
     {
         if (!isset($this->cart[$index])) return;
@@ -79,6 +99,65 @@ class Cashier extends Component
     public function getSubtotalProperty(): float
     {
         return array_sum(array_column($this->cart, 'subtotal'));
+    }
+
+    public function getDiscountAmountProperty(): float
+    {
+        return $this->discountData['total_discount'];
+    }
+
+    public function getDiscountDataProperty(): array
+    {
+        if (empty($this->cart)) {
+            return ['total_discount' => 0, 'items' => []];
+        }
+
+        $storeId = $this->storeId;
+        $cartSubtotal = $this->subtotal;
+
+        $activeDiscounts = Discount::byStore($storeId)->active()
+            ->with('products')->orderBy('priority', 'desc')->get();
+
+        $discountDetails = [];
+        $totalDiscount = 0;
+
+        foreach ($this->cart as $index => $item) {
+            $itemDiscount = 0;
+            $itemDiscountNames = [];
+
+            foreach ($activeDiscounts as $discount) {
+                $discountProductIds = $discount->products->pluck('id');
+                $appliesToAll = $discountProductIds->isEmpty();
+                $appliesToProduct = $appliesToAll || $discountProductIds->contains($item['product_id']);
+
+                if (!$appliesToProduct) continue;
+                if ($discount->min_purchase && $cartSubtotal < (float) $discount->min_purchase) continue;
+
+                $potential = $discount->type === 'percentage'
+                    ? $item['subtotal'] * ((float) $discount->value / 100)
+                    : (float) $discount->value * $item['quantity'];
+
+                $potential = min($potential, $item['subtotal']);
+                if ($potential <= 0) continue;
+
+                if ($discount->stackable) {
+                    $itemDiscount += $potential;
+                    $itemDiscountNames[] = $discount->name;
+                } elseif ($potential > $itemDiscount) {
+                    $itemDiscount = $potential;
+                    $itemDiscountNames = [$discount->name];
+                }
+            }
+
+            $itemDiscount = min($itemDiscount, $item['subtotal']);
+            $discountDetails[$index] = [
+                'amount' => $itemDiscount,
+                'names' => $itemDiscountNames,
+            ];
+            $totalDiscount += $itemDiscount;
+        }
+
+        return ['total_discount' => $totalDiscount, 'items' => $discountDetails];
     }
 
     public function getTaxAmountProperty(): float
@@ -96,13 +175,13 @@ class Cashier extends Component
 
     public function getTotalProperty(): float
     {
-        return $this->subtotal + $this->taxAmount;
+        return max(0, $this->subtotal + $this->taxAmount - $this->discountAmount);
     }
 
     public function getChangeProperty(): float
     {
-        if ($this->payment_method === 'cash' && $this->payment_amount > 0) {
-            return $this->payment_amount - $this->total;
+        if ($this->payment_amount > 0) {
+            return max(0, $this->payment_amount - $this->total);
         }
         return 0;
     }
@@ -115,14 +194,10 @@ class Cashier extends Component
         }
 
         $this->validate([
-            'payment_method' => 'required|in:cash,qris,transfer,debit_card,midtrans',
+            'payment_method' => 'required|in:cash,qris,transfer,debit_card',
             'customer_name' => 'nullable|max:255',
+            'reference_number' => 'nullable|max:100',
         ]);
-
-        if ($this->payment_method === 'midtrans') {
-            $this->processMidtransPayment();
-            return;
-        }
 
         try {
             $transaction = $checkoutService->processCheckout(
@@ -133,6 +208,8 @@ class Cashier extends Component
                 taxEnabled: $this->tax_enabled,
                 storeId: $this->storeId,
                 userId: auth()->id(),
+                referenceNumber: $this->reference_number ?: null,
+                discountData: $this->discountData,
             );
 
             $this->dispatch('transactionCompleted',
@@ -140,11 +217,13 @@ class Cashier extends Component
                 invoiceNumber: $transaction->invoice_number,
                 total: $transaction->total_amount,
                 paymentMethod: $this->payment_method,
-                customerName: $this->customer_name
+                customerName: $this->customer_name,
+                discountAmount: $this->discountAmount,
             );
             $this->cart = [];
             $this->customer_name = '';
             $this->payment_amount = 0;
+            $this->reference_number = '';
 
             session()->flash('success', 'Transaksi berhasil! Invoice: ' . $transaction->invoice_number);
         } catch (\RuntimeException $e) {
@@ -152,105 +231,7 @@ class Cashier extends Component
         }
     }
 
-    public function processMidtransPayment(): void
-    {
-        if (empty($this->cart)) {
-            session()->flash('error', 'Keranjang masih kosong.');
-            return;
-        }
 
-        if (empty(config('midtrans.server_key'))) {
-            session()->flash('error', 'Midtrans belum dikonfigurasi. Hubungi pemilik toko.');
-            return;
-        }
-
-        $checkoutService = app(CheckoutService::class);
-        $this->midtransOrderId = $checkoutService->generateInvoiceNumber($this->storeId);
-
-        $itemDetails = [];
-        foreach ($this->cart as $item) {
-            $itemDetails[] = [
-                'id' => (string) $item['product_id'],
-                'price' => (int) $item['price'],
-                'quantity' => (int) $item['quantity'],
-                'name' => substr($item['name'], 0, 50),
-            ];
-        }
-
-        $total = $checkoutService->calculateTotal($this->cart, $this->tax_enabled);
-
-        try {
-            $midtrans = app(MidtransService::class);
-            $params = [
-                'transaction_details' => [
-                    'order_id' => $this->midtransOrderId,
-                    'gross_amount' => (int) $total,
-                ],
-                'item_details' => $itemDetails,
-                'customer_details' => [
-                    'first_name' => $this->customer_name ?: 'Customer',
-                    'phone' => '',
-                ],
-                'callbacks' => [
-                    'finish' => route('cashier'),
-                ],
-            ];
-
-            $snapResponse = $midtrans->createSnapTransaction($params);
-            $this->midtransSnapToken = $snapResponse->token;
-            $this->showMidtransPopup = true;
-
-            $this->dispatch('midtransReady', token: $this->midtransSnapToken);
-        } catch (\Exception $e) {
-            session()->flash('error', 'Gagal membuat transaksi Midtrans: ' . $e->getMessage());
-        }
-    }
-
-    public function completeMidtransPayment(CheckoutService $checkoutService): void
-    {
-        if (!$this->midtransOrderId || empty($this->cart)) return;
-
-        try {
-            $midtrans = app(MidtransService::class);
-            try {
-                $statusResponse = $midtrans->checkStatus($this->midtransOrderId);
-                $txStatus = $statusResponse->transaction_status ?? '';
-                if (!in_array($txStatus, ['settlement', 'capture'])) {
-                    session()->flash('error', 'Pembayaran Midtrans belum selesai. Status: ' . $txStatus);
-                    return;
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::info('Midtrans status check failed, proceeding anyway', ['error' => $e->getMessage()]);
-            }
-
-            $transaction = $checkoutService->processMidtransCheckout(
-                cart: $this->cart,
-                customerName: $this->customer_name,
-                orderId: $this->midtransOrderId,
-                taxEnabled: $this->tax_enabled,
-                storeId: $this->storeId,
-                userId: auth()->id(),
-            );
-
-            $this->dispatch('transactionCompleted',
-                transactionId: $transaction->id,
-                invoiceNumber: $transaction->invoice_number,
-                total: $transaction->total_amount,
-                paymentMethod: 'midtrans',
-                customerName: $this->customer_name
-            );
-            $this->cart = [];
-            $this->customer_name = '';
-            $this->payment_amount = 0;
-            $this->midtransSnapToken = null;
-            $this->midtransOrderId = null;
-            $this->showMidtransPopup = false;
-
-            session()->flash('success', 'Pembayaran berhasil! Invoice: ' . $transaction->invoice_number);
-        } catch (\RuntimeException $e) {
-            session()->flash('error', $e->getMessage());
-        }
-    }
 
     public function render()
     {
@@ -269,7 +250,18 @@ class Cashier extends Component
 
         $products = $query->orderBy('name')->get();
         $categories = Category::where('store_id', $this->storeId)->where('is_active', true)->get();
+        $activeDiscounts = Discount::byStore($this->storeId)->active()->orderBy('priority', 'desc')->get();
 
-        return view('livewire.cashier', compact('products', 'categories'));
+        $discountedProductIds = collect();
+        foreach ($activeDiscounts as $discount) {
+            $discountProducts = $discount->products()->pluck('product_id');
+            if ($discountProducts->isEmpty()) {
+                $discountedProductIds = $products->pluck('id');
+                break;
+            }
+            $discountedProductIds = $discountedProductIds->merge($discountProducts);
+        }
+
+        return view('livewire.cashier', compact('products', 'categories', 'activeDiscounts', 'discountedProductIds'));
     }
 }

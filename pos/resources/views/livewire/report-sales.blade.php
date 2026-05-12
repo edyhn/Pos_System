@@ -42,6 +42,16 @@
                     </select>
                 </div>
             @endif
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Pembayaran</label>
+                <select wire:model.live="paymentMethod" class="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                    <option value="">Semua</option>
+                    <option value="cash">Tunai</option>
+                    <option value="qris">QRIS</option>
+                    <option value="transfer">Transfer</option>
+                    <option value="debit_card">Kartu Debit</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -71,7 +81,7 @@
         ]) !!}'></canvas>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
             <div class="flex items-center gap-3 mb-2">
                 <div class="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -99,6 +109,31 @@
             </div>
             <p class="text-2xl font-bold text-purple-600">Rp{{ number_format($summary->total_tax, 0, ',', '.') }}</p>
         </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                </div>
+                <span class="text-sm font-medium text-gray-500">Rata-rata</span>
+            </div>
+            <p class="text-2xl font-bold text-amber-600">Rp{{ number_format($summary->avg_transaction, 0, ',', '.') }}</p>
+        </div>
+    </div>
+
+    {{-- Payment Breakdown --}}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        @php
+            $pmLabels = ['cash' => 'Tunai', 'qris' => 'QRIS', 'transfer' => 'Transfer', 'debit_card' => 'Kartu Debit'];
+            $pmColors = ['cash' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'qris' => 'bg-blue-50 text-blue-700 border-blue-200', 'transfer' => 'bg-purple-50 text-purple-700 border-purple-200', 'debit_card' => 'bg-amber-50 text-amber-700 border-amber-200'];
+        @endphp
+        @foreach (['cash', 'qris', 'transfer', 'debit_card'] as $pm)
+            @php $bd = $paymentBreakdown->get($pm); @endphp
+            <div class="bg-white rounded-lg border px-4 py-3 {{ $pmColors[$pm] ?? 'border-gray-200' }}">
+                <p class="text-xs font-medium opacity-80">{{ $pmLabels[$pm] ?? $pm }}</p>
+                <p class="text-lg font-bold mt-0.5">{{ $bd ? number_format($bd->total, 0, ',', '.') : 0 }}</p>
+                <p class="text-[11px] opacity-60">{{ $bd ? $bd->count . ' transaksi' : '0 transaksi' }}</p>
+            </div>
+        @endforeach
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -111,6 +146,7 @@
                         <th class="px-4 py-3.5">Cabang</th>
                         <th class="px-4 py-3.5">Kasir</th>
                         <th class="px-4 py-3.5">Pembayaran</th>
+                        <th class="px-4 py-3.5">No. Ref</th>
                         <th class="px-4 py-3.5 text-right">Total</th>
                     </tr>
                 </thead>
@@ -124,14 +160,16 @@
                             <td class="px-4 py-3.5">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700">
                                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                    {{ $t->payment_method }}
+                                    @php $pmLabels = ['cash' => 'Tunai', 'qris' => 'QRIS', 'transfer' => 'Transfer', 'debit_card' => 'Kartu Debit']; @endphp
+                                    {{ $pmLabels[$t->payment_method] ?? $t->payment_method }}
                                 </span>
                             </td>
+                            <td class="px-4 py-3.5 text-xs text-gray-400 font-mono">{{ $t->reference_number ?? '-' }}</td>
                             <td class="px-4 py-3.5 text-right font-semibold text-gray-800">Rp{{ number_format($t->total_amount, 0, ',', '.') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-12 text-center">
+                            <td colspan="7" class="px-4 py-12 text-center">
                                 <div class="flex flex-col items-center text-gray-400">
                                     <svg class="w-12 h-12 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                                     <p class="text-sm font-medium">Belum ada transaksi</p>

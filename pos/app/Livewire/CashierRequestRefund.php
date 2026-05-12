@@ -46,7 +46,7 @@ class CashierRequestRefund extends Component
         if ($value) {
             $item = collect($this->transactionItems)->firstWhere('id', $value);
             if ($item) {
-                $this->refundAmount = (float) ($item['subtotal'] ?? 0);
+                $this->refundAmount = (float) (($item['subtotal'] ?? 0) - ($item['discount_amount'] ?? 0));
             }
         } else {
             $this->refundAmount = 0;

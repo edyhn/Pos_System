@@ -23,21 +23,36 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-gray-700">Nilai</label>
-                    <input type="number" step="0.01" wire:model="value" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div x-data="{ formatted: '{{ $discount ? number_format($discount->value, 0, ',', '.') : '' }}' }">
+                    <label class="block mb-1 text-sm font-medium text-gray-700">
+                        Nilai <span x-text="$wire.type === 'percentage' ? '(%)' : '(Rp)'" class="text-gray-500"></span>
+                    </label>
+                    <input type="text" x-model="formatted"
+                           x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('value', n); } else { $wire.set('value', 0); }"
+                           :placeholder="$wire.type === 'percentage' ? 'Contoh: 10' : 'Contoh: 50.000'"
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500" x-text="$wire.type === 'percentage' ? 'Persentase potongan dari harga produk.' : 'Nominal potongan dalam Rupiah.'"></p>
                     @error('value') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
+                <div x-data="{ formatted: '{{ $discount && $discount->min_purchase ? number_format($discount->min_purchase, 0, ',', '.') : '' }}' }">
                     <label class="block mb-1 text-sm font-medium text-gray-700">Min. Pembelian (opsional)</label>
-                    <input type="number" step="0.01" wire:model="min_purchase" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" x-model="formatted"
+                           x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('min_purchase', n); } else { $wire.set('min_purchase', null); }"
+                           placeholder="0"
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     @error('min_purchase') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block mb-1 text-sm font-medium text-gray-700">Prioritas</label>
-                    <input type="number" wire:model="priority" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <select wire:model="priority" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="0">Rendah</option>
+                        <option value="1">Normal</option>
+                        <option value="2">Tinggi</option>
+                        <option value="3">Sangat Tinggi</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">Diskon dengan prioritas lebih tinggi akan didahulukan saat bertabrakan dengan diskon lain.</p>
                     @error('priority') <span class="text-sm text-red-600">{{ $message }}</span> @enderror
                 </div>
 
@@ -71,9 +86,9 @@
             <p class="mb-2 text-sm text-gray-500">Kosongkan jika diskon berlaku untuk semua produk.</p>
             <div class="grid grid-cols-2 gap-2 md:grid-cols-4 max-h-60 overflow-y-auto">
                 @foreach ($products as $product)
-                    <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50">
+                    <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-white/5">
                         <input type="checkbox" value="{{ $product->id }}" wire:model="selectedProducts" class="rounded">
-                        <span class="text-sm">{{ $product->name }}</span>
+                        <span class="text-sm text-gray-800">{{ $product->name }}</span>
                     </label>
                 @endforeach
             </div>

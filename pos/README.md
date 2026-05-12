@@ -1,11 +1,11 @@
 # POS System (Point of Sale)
 
-Laravel + Livewire + Tailwind CSS v4 POS system with multi-store support, thermal printing, Midtrans payment gateway, and discount/promo management.
+Laravel + Livewire + Tailwind CSS v4 POS system with multi-store support, thermal printing, discount/promo management, dashboard analytics, and forecasting.
 
 ## Requirements
 
 - PHP ^8.3
-- MySQL/MariaDB or SQLite
+- SQLite (default) or MySQL/MariaDB
 - Composer
 - Node.js + npm
 - Web server (Apache/Nginx) or `php artisan serve`
@@ -14,7 +14,7 @@ Laravel + Livewire + Tailwind CSS v4 POS system with multi-store support, therma
 
 ```bash
 cp .env.example .env
-# Edit .env - set DB credentials, APP_URL, Midtrans keys
+# Edit .env - set APP_URL, database path
 
 composer install
 npm install
@@ -63,21 +63,38 @@ On Windows, the scheduler is included in `composer run dev`, or use:
 .\scheduler.bat
 ```
 
+### Docker
+
+```bash
+docker compose up -d
+```
+
+Nginx + PHP 8.3, serves on port 80.
+
 ## Configuration
 
-### Midtrans (Payment Gateway)
+### Database
 
-1. Register at [Midtrans](https://midtrans.com)
-2. Get Server Key & Client Key from Dashboard
-3. Set in `.env`:
+SQLite is the default. The database file is at `database/database.sqlite`.
+
+To switch to MySQL, update `.env`:
 ```
-MIDTRANS_SERVER_KEY=your-server-key
-MIDTRANS_CLIENT_KEY=your-client-key
-MIDTRANS_IS_PRODUCTION=false
-MIDTRANS_MERCHANT_ID=your-merchant-id
-MIDTRANS_SANDBOX=true
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=pos
+DB_USERNAME=root
+DB_PASSWORD=
 ```
-4. Set webhook URL in Midtrans Dashboard: `https://your-domain.com/midtrans/webhook`
+
+### Auto Backup
+
+Database is automatically backed up daily at 02:00. Backups older than 30 days are cleaned up.
+
+Manual backup:
+```bash
+php artisan db:backup
+```
 
 ### Email Notifications
 
@@ -130,19 +147,29 @@ All endpoints except `/api/login` require header: `Authorization: Bearer {token}
 
 | Role    | Access                                       |
 |---------|----------------------------------------------|
-| owner   | Full access (products, categories, reports, discounts) |
-| cashier | POS checkout, transaction history, requests  |
+| owner   | Full access (products, categories, reports, discounts, approvals) |
+| cashier | POS checkout, transaction history, refund/receipt requests |
 
 ## Features
 
 ### POS / Cashier
-- Product grid with search & category filter
+- Product grid with search, category filter & **barcode scanner** (F2 shortcut)
 - Cart management (add, remove, quantity)
-- Multi-payment: Cash, QRIS, Transfer, Debit Card, Midtrans
+- Multi-payment: **Cash, QRIS, Transfer Bank, Kartu Debit**
+- **Auto discount calculation** — priority-based, stackable, min-purchase rules
+- Diskon ditampilkan di banner, badge produk, breakdown keranjang, dan struk
 - Tax toggle (PPN)
 - Automatic stock deduction
 - Subscription product support
-- Thermal receipt printing (browser + direct ESC/POS)
+- Thermal receipt printing (browser HTML + direct ESC/POS)
+- **Realtime browser notification** on completed transaction
+
+### Dashboard
+- Stat cards: today's sales, transactions, products, pending approvals
+- Chart: weekly & monthly sales (bar/line chart)
+- **Top 5 products** by quantity (horizontal bar)
+- **Category sales breakdown** (doughnut chart)
+- Draft PO & low stock alerts
 
 ### Inventory
 - Stock view with color-coded alerts (red=out, orange=low, green=ok)
@@ -154,33 +181,40 @@ All endpoints except `/api/login` require header: `Authorization: Bearer {token}
 ### Purchase Orders
 - CRUD with workflow: Draft → Sent → Received → Cancelled
 - Auto-draft PO for low-stock products (scheduled daily at 06:00)
+- **Forecast-based auto PO** from stock runout predictions
 
 ### Diskon & Promo
 - Tipe: Persentase (%) atau Nominal (Rp)
 - Date range auto-activation
 - Manual toggle on/off
-- Priority & stackable rules
+- **Priority & stackable rules** (prioritas lebih tinggi didahulukan)
 - Minimum purchase threshold
 - Apply to specific products or all products
+- **Diskon otomatis terhitung di kasir** & tersimpan di transaksi
 
 ### Reports
-- Sales report with chart + export Excel/PDF
-- Tax report with chart + export PDF
+- **Sales report** — filter by date & payment method, average transaction, breakdown per method, reference number, chart + export Excel/PDF
+- **Tax report** — with chart + export PDF
 - Stock export Excel/PDF
 
 ### Forecasting
-- Sales: Moving Average, WMA, Exponential Smoothing, Linear Regression, Seasonal
-- Stock: Daily average, runout prediction, reorder recommendations
+- **Sales**: Moving Average, WMA, Exponential Smoothing, Linear Regression, Seasonal, Future Prediction
+- **Stock**: Daily average, runout prediction (status: habis/kritis/menipis/aman), reorder recommendations
 
 ### Approvals
 - Receipt Reprint approval workflow
 - Refund Request approval with notes
+- **Refund respects discounts** — amount auto-calculated from discounted price, validated on approval
 
 ### Subscription
 - Subscription-enabled products with auto-expire (scheduled daily)
 
 ### Activity Logs
 - Track all create/update/delete actions with filterable viewer
+
+### Dark Mode
+- Toggle in sidebar (persisted to localStorage)
+- Comprehensive CSS overrides covering all pages
 
 ## Dummy Data
 
@@ -206,56 +240,65 @@ composer test
 
 Runs 120+ tests covering:
 - Authentication & role middleware
-- Service layer (CheckoutService, StockService)
-- Checkout flow (cart validation, transaction creation, stock deduction, subscriptions)
+- Service layer (CheckoutService, StockService, ForecastService)
+- Checkout flow (cart validation, transaction creation, stock deduction, subscriptions, discounts)
 - Product, Category, User CRUD access control
 - Stock movements, stock opname
 - Purchase orders
+- Forecast calculations
 - Approvals & refunds
 
 ## Architecture
 
 ### Service Layer
 Business logic is extracted into dedicated service classes:
-- `CheckoutService` — checkout validation, invoice generation, transaction creation
+- `CheckoutService` — checkout validation, invoice generation, transaction creation, discount application
 - `StockService` — stock in/out movements with validation
-- `MidtransService` — Midtrans Snap API + signature verification
 - `PrintService` — ESC/POS thermal printing
-- `DiscountService` — discount eligibility & calculation
 - `ActivityLogger` — activity logging
 - `ForecastService` — sales & stock forecasting algorithms
+- `DatabaseBackup` (Command) — automated SQLite backup
 
-### FormRequest Validation
-Reusable validation classes for API and web:
-- `StoreProductRequest` / `UpdateProductRequest`
-- `StoreCategoryRequest`
-- `StoreTransactionRequest`
+### Key Design Decisions
+- **SQLite** as default database (portable, zero-config)
+- **Vanilla JS** for dark mode (more reliable than Alpine on `<html>`)
+- **CSS overrides** for dark mode (covers hundreds of elements without editing each view)
+- **No Midtrans/ewallet** — online payment removed; QRIS retained as offline QR scan
+- **Discount stored per transaction item** — `discount_amount` + `discount_name` on each item for auditability
 
 ## Changelog
-
-### 2026-05-12 — Service Layer, Discounts & Testing
-
-- **Refactor:** Extract `CheckoutService` from bloated Cashier Livewire component (448→262 lines)
-- **Refactor:** Extract `StockService` for centralized stock management
-- **Refactor:** `MidtransWebhookController` now uses constructor injection
-- **Feature:** Discount & Promo system with CRUD, date-based auto-activation, toggle, priority, stackable rules, and per-product targeting
-- **Feature:** `DiscountService` for calculating applicable discounts at checkout
-- **Quality:** Blade directives `@currency` and `@formatNumber`
-- **Quality:** Global helper functions `formatNumber()`, `formatCurrency()`, `formatDate()`
-- **Quality:** FormRequest validation classes (Product, Category, Transaction)
-- **Quality:** `PurchaseOrder` now uses SoftDeletes (consistency with other models)
-- **Testing:** 30 new unit tests for CheckoutService (9) and StockService (7)
-- **Testing:** Full test suite expanded from 103 to 120 tests
-- **Optimization:** Dashboard queries cached (60s owner, 30s cashier), invalidated on new transaction
-- **Optimization:** Cache dashboard charts already cached (weekly: 5min, monthly: 1hr)
 
 ### 2026-05-11 — Performance & Security Fixes
 
 - **Fix: Race condition** — Invoice number generation uses cache lock
-- **Fix: Midtrans double-processing** — Status verification before completing
 - **Fix: SQLite compatibility** — Monthly chart is database-agnostic
 - **Fix: XSS prevention** — Export links param whitelist
 - **Soft Deletes** — Category, Product, Vendor, User, Store
 - **Indexing** — Composite indexes on stock_movements
 - **Rate Limiting** — API routes (60/min auth, 10/min login)
 - **Image Optimization** — Product upload resize to max 600px width
+
+### 2026-05-12 — Discount Integration, Dark Mode, Backup, Docker
+
+- **Feature:** Discount auto-calculation in cashier — priority, stackable, min-purchase applied to cart
+- **Feature:** Discount displayed in cart breakdown (per-item & total), receipt (HTML & thermal), and stored in DB
+- **Feature:** Dark mode toggle (vanilla JS + localStorage + comprehensive CSS)
+- **Feature:** Auto backup database (`db:backup` command, scheduled daily 02:00, 30-day cleanup)
+- **Feature:** Realtime browser notification on transaction complete
+- **Feature:** Docker setup (PHP 8.3 + Nginx)
+- **Feature:** CI/CD via GitHub Actions (`tests.yml`)
+- **Enhancement:** Refund now respects discounts (amount auto-calculated from net price)
+- **Enhancement:** Priority field uses dropdown (Rendah/Normal/Tinggi/Sangat Tinggi)
+- **Enhancement:** Dynamic "Nilai" label (%)/(Rp) based on discount type
+- **Enhancement:** Per-item netto price shown in cart + receipt
+- **Fix:** Dashboard cache keys mismatch (CheckoutService now clears correct keys)
+- **Fix:** Dashboard `scopeToday()` uses range query for index utilization
+- **Fix:** Dashboard category sales joins on `product_id` instead of `product_name`
+- **Fix:** Forecast `linearRegression` division-by-zero guard
+- **Fix:** Forecast `predictFuture` removes double-counting of trend
+- **Fix:** Forecast date range off-by-one between `getDailySales` and `fillMissingDates`
+- **Fix:** Store settings slug not updated on name change
+- **Fix:** Store settings printer address accepts hostnames (not just IP)
+- **Optimization:** Dashboard polling reduced 30s→300s, all data points cached
+- **Midtrans removed** — online payment gateway fully removed
+

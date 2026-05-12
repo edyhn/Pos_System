@@ -15,7 +15,7 @@ class StoreTransactionRequest extends FormRequest
     {
         return [
             'customer_name' => 'nullable|string|max:255',
-            'payment_method' => 'required|in:cash,qris,transfer,debit_card,midtrans',
+            'payment_method' => 'required|in:cash,qris,transfer,debit_card',
             'payment_amount' => 'required|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',

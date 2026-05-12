@@ -48,6 +48,18 @@
                     <td>{{ $item->quantity }}</td>
                     <td>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 </tr>
+                @if($item->discount_amount > 0)
+                    <tr>
+                        <td colspan="2" style="color:#666; font-size:10px; padding-left:8px;">
+                            Diskon{{ $item->discount_name ? ' ('.$item->discount_name.')' : '' }}
+                        </td>
+                        <td style="color:#666; font-size:10px;">-Rp {{ number_format($item->discount_amount, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="font-size:10px; padding-left:8px;">Netto</td>
+                        <td style="font-size:10px;">Rp {{ number_format($item->subtotal - $item->discount_amount, 0, ',', '.') }}</td>
+                    </tr>
+                @endif
             @endforeach
         </tbody>
     </table>
@@ -56,6 +68,9 @@
 
     <table style="width:100%">
         <tr><td>Subtotal</td><td style="text-align:right">Rp {{ number_format($transaction->subtotal, 0, ',', '.') }}</td></tr>
+        @if($transaction->discount_amount > 0)
+            <tr><td style="color:#666;">Diskon</td><td style="text-align:right;color:#666;">-Rp {{ number_format($transaction->discount_amount, 0, ',', '.') }}</td></tr>
+        @endif
         @if($transaction->tax_amount > 0)
             <tr><td>Pajak</td><td style="text-align:right">Rp {{ number_format($transaction->tax_amount, 0, ',', '.') }}</td></tr>
         @endif

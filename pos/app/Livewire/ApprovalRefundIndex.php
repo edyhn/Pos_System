@@ -53,6 +53,14 @@ class ApprovalRefundIndex extends Component
                 $req = RefundRequest::with('transaction.items', 'user')->findOrFail($this->requestId);
                 $transaction = $req->transaction;
 
+                $item = $req->transactionItem ?: $transaction?->items->first();
+                if ($item) {
+                    $maxRefund = max(0, ($item->subtotal ?? 0) - ($item->discount_amount ?? 0));
+                    if ($this->refundAmount > $maxRefund) {
+                        throw new \RuntimeException('Jumlah refund tidak boleh melebihi Rp ' . number_format($maxRefund, 0, ',', '.'));
+                    }
+                }
+
                 $req->update([
                     'status' => 'approved',
                     'approved_by' => auth()->id(),
@@ -68,7 +76,6 @@ class ApprovalRefundIndex extends Component
                     Subscription::where('transaction_id', $transaction->id)
                         ->update(['status' => 'refunded']);
 
-                    $item = $req->transactionItem ?: $transaction->items->first();
                     if ($item) {
                         Product::where('id', $item->product_id)->increment('stock', $item->quantity);
 

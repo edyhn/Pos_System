@@ -1,4 +1,4 @@
-<div wire:poll.30s>
+<div wire:poll.300s>
     @php $user = auth()->user(); @endphp
 
     @if($user->isOwner())
@@ -100,6 +100,58 @@
                         "scales" => ["y" => ["beginAtZero" => true, "ticks" => ["callback" => "formatRupiah"]]]
                     ]
                 ]) !!}'></canvas>
+            </div>
+        </div>
+
+        {{-- More Charts: Top Products & Category Sales --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Top 5 Produk Terlaris (30 hari)</h2>
+                    <span class="text-xs text-gray-400">Horizontal Bar</span>
+                </div>
+                <canvas data-chart='{!! json_encode([
+                    "type" => "bar",
+                    "data" => [
+                        "labels" => $topProductsChart["labels"],
+                        "datasets" => [[
+                            "label" => "Terjual",
+                            "data" => $topProductsChart["values"],
+                            "backgroundColor" => ["rgba(59, 130, 246, 0.7)", "rgba(16, 185, 129, 0.7)", "rgba(245, 158, 11, 0.7)", "rgba(139, 92, 246, 0.7)", "rgba(239, 68, 68, 0.7)"],
+                            "borderRadius" => 4
+                        ]]
+                    ],
+                    "options" => [
+                        "indexAxis" => "y",
+                        "responsive" => true,
+                        "plugins" => ["legend" => ["display" => false]],
+                        "scales" => ["x" => ["beginAtZero" => true, "ticks" => ["precision" => 0]]]
+                    ]
+                ]) !!}'></canvas>
+            </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-gray-800">Penjualan per Kategori (30 hari)</h2>
+                    <span class="text-xs text-gray-400">Doughnut</span>
+                </div>
+                <div class="flex justify-center">
+                    <canvas data-chart='{!! json_encode([
+                        "type" => "doughnut",
+                        "data" => [
+                            "labels" => $categorySalesChart["labels"],
+                            "datasets" => [[
+                                "data" => $categorySalesChart["values"],
+                                "backgroundColor" => ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4", "#f97316", "#ec4899"],
+                                "borderWidth" => 0
+                            ]]
+                        ],
+                        "options" => [
+                            "responsive" => true,
+                            "plugins" => ["legend" => ["position" => "bottom", "labels" => ["padding" => 12, "usePointStyle" => true, "pointStyle" => "circle"]]]
+                        ]
+                    ]) !!}' style="max-height: 260px;">
+                    </canvas>
+                </div>
             </div>
         </div>
 

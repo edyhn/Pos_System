@@ -7,8 +7,30 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>[x-cloak] { display: none !important; }</style>
+    <script>
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+        function toggleDark() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDark);
+            const icons = document.querySelectorAll('[data-dark-icon]');
+            if (icons.length >= 2) {
+                icons[0].classList.toggle('hidden', !isDark);
+                icons[1].classList.toggle('hidden', isDark);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            const icons = document.querySelectorAll('[data-dark-icon]');
+            if (icons.length >= 2) {
+                icons[0].classList.toggle('hidden', !isDark);
+                icons[1].classList.toggle('hidden', isDark);
+            }
+        });
+    </script>
 </head>
-<body class="bg-gray-50 min-h-screen" x-data="{ sidebarOpen: true }">
+<body class="bg-gray-50 dark:bg-gray-950 min-h-screen" x-data="{ sidebarOpen: true }">
     @auth
         @php
             $user = auth()->user();
@@ -206,7 +228,12 @@
                 <div class="flex items-center gap-3 ml-auto">
                     @livewire('notification-bell')
 
-                    <div class="hidden lg:flex items-center gap-3 pl-3 border-l border-gray-200">
+                    <button onclick="toggleDark()" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Toggle Dark Mode">
+                        <svg data-dark-icon class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></svg>
+                        <svg data-dark-icon class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></svg>
+                    </button>
+
+                    <div class="hidden lg:flex items-center gap-3 pl-3 border-l border-gray-200 dark:border-gray-700">
                         <div class="text-right">
                             <p class="text-sm font-medium text-gray-800">{{ $user->name }}</p>
                             <p class="text-xs text-gray-400">{{ $user->email }}</p>

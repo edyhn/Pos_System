@@ -10,7 +10,33 @@
                 document.getElementById('printPayment').textContent = data.paymentMethod;
                 document.getElementById('printCustomer').textContent = data.customerName || '-';
                 document.getElementById('printModal').classList.remove('hidden');
+                setTimeout(() => document.getElementById('barcodeInput')?.focus(), 100);
             });
+
+            Livewire.on('barcodeScanned', function (data) {
+                const flash = document.getElementById('barcodeFlash');
+                if (flash) {
+                    flash.textContent = '✓ ' + data.productName;
+                    flash.classList.remove('hidden', 'opacity-0');
+                    flash.classList.add('opacity-100');
+                    setTimeout(() => {
+                        flash.classList.remove('opacity-100');
+                        flash.classList.add('opacity-0');
+                        setTimeout(() => flash.classList.add('hidden'), 300);
+                    }, 1500);
+                }
+            });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'F2' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault();
+                const input = document.getElementById('barcodeInput');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }
         });
 
         function confirmPrint() {
@@ -24,11 +50,57 @@
             document.getElementById('printModal').classList.add('hidden');
             pendingPrintId = null;
         }
+
+        let barcodeTimer = null;
+        function onBarcodeInput(el) {
+            clearTimeout(barcodeTimer);
+            barcodeTimer = setTimeout(() => {
+                if (el.value.length > 0) {
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }, 100);
+        }
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        document.addEventListener('livewire:initialized', function () {
+            Livewire.on('transactionCompleted', function (data) {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Transaksi Berhasil', {
+                        body: data.invoiceNumber + ' - Rp ' + new Intl.NumberFormat('id-ID').format(data.total),
+                        icon: '/favicon.ico'
+                    });
+                }
+            });
+        });
     </script>
 
     <div class="flex gap-4 h-[calc(100vh-8rem)]">
         {{-- LEFT: Product Grid --}}
         <div class="flex-1 flex flex-col min-w-0">
+            {{-- Barcode Scanner --}}
+            <div class="mb-3">
+                <div class="flex gap-2 items-center">
+                    <div class="relative flex-1">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2zM7 5h10v14H7V5zm2 2h6v2H9V7zm0 4h6v2H9v-2zm0 4h6v2H9v-2z"/></svg>
+                        <input id="barcodeInput"
+                               type="text"
+                               wire:model.live="barcode"
+                               wire:keydown.enter="scanBarcode"
+                               placeholder="Scan barcode (tekan F2)..."
+                               autofocus
+                               class="w-full pl-9 pr-4 py-2.5 border-2 border-blue-400 rounded-lg text-sm font-mono tracking-wider focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none bg-blue-50/30">
+                    </div>
+                    <span class="text-[10px] text-gray-400 font-mono bg-gray-100 px-2 py-1 rounded hidden sm:inline">F2</span>
+                </div>
+                <div id="barcodeFlash" class="hidden opacity-0 transition-opacity duration-300 mt-1.5 text-sm text-emerald-600 font-medium flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span></span>
+                </div>
+            </div>
+
             {{-- Search & Filter --}}
             <div class="flex gap-2 mb-3">
                 <div class="relative flex-1">
@@ -42,6 +114,19 @@
                     @endforeach
                 </select>
             </div>
+
+            {{-- Active Promos --}}
+            @if(count($activeDiscounts) > 0)
+                <div class="mb-3 flex gap-2 overflow-x-auto py-1 scrollbar-thin">
+                    @foreach($activeDiscounts as $discount)
+                        <span class="shrink-0 text-[11px] px-2.5 py-1 rounded-full font-medium
+                            {{ $discount->type === 'percentage' ? 'bg-purple-50 text-purple-700 ring-1 ring-purple-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' }}">
+                            {{ $discount->name }}
+                            ({{ $discount->type === 'percentage' ? $discount->value . '%' : 'Rp ' . number_format($discount->value, 0, ',', '.') }})
+                        </span>
+                    @endforeach
+                </div>
+            @endif
 
             {{-- Products --}}
             <div class="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
@@ -66,6 +151,9 @@
                             <span class="text-[11px] {{ $product->stock <= 0 ? 'text-red-500' : ($product->stock <= $product->min_stock ? 'text-amber-500' : 'text-gray-400') }}">
                                 Stok: {{ $product->stock }}
                             </span>
+                            @if($discountedProductIds->contains($product->id))
+                                <span class="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-medium">Diskon</span>
+                            @endif
                             @if($product->is_subscription)
                                 <span class="text-[10px] bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">Langganan</span>
                             @endif
@@ -109,10 +197,17 @@
                 @endif
 
                 @forelse ($cart as $index => $item)
+                    @php $d = $this->discountData['items'][$index] ?? null; @endphp
                     <div class="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-medium text-gray-800 truncate">{{ $item['name'] }}</p>
-                            <p class="text-xs text-gray-400">Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
+                            <p class="text-xs text-gray-400">Rp {{ number_format($item['price'], 0, ',', '.') }} x {{ $item['quantity'] }}</p>
+                            @if($d && $d['amount'] > 0)
+                                <p class="text-[11px] text-green-600 font-medium mt-0.5">
+                                    Diskon: -Rp {{ number_format($d['amount'], 0, ',', '.') }}
+                                    <span class="text-gray-400 font-normal">→ Rp {{ number_format($item['subtotal'] - $d['amount'], 0, ',', '.') }}</span>
+                                </p>
+                            @endif
                         </div>
                         <div class="flex items-center gap-1">
                             <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
@@ -150,6 +245,12 @@
                         <span class="text-gray-500">Subtotal</span>
                         <span class="font-medium text-gray-800">Rp {{ number_format($this->subtotal, 0, ',', '.') }}</span>
                     </div>
+                    @if($this->discountAmount > 0)
+                        <div class="flex justify-between">
+                            <span class="text-green-600">Diskon</span>
+                            <span class="font-medium text-green-600">-Rp {{ number_format($this->discountAmount, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
                     @if($tax_enabled)
                         <div class="flex justify-between">
                             <span class="text-gray-500">Pajak (PPN)</span>
@@ -168,23 +269,27 @@
                         <option value="qris">📱 QRIS</option>
                         <option value="transfer">🏦 Transfer Bank</option>
                         <option value="debit_card">💳 Kartu Debit</option>
-                        <option value="midtrans">🔗 Midtrans (QRIS / VA)</option>
                     </select>
                     <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
 
-                @if($payment_method === 'cash')
-                    <div x-data="{ formatted: '{{ $payment_amount > 0 ? number_format($payment_amount, 0, ',', '.') : '' }}' }">
-                        <input type="text" x-model="formatted"
-                               x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('payment_amount', n); } else { $wire.set('payment_amount', 0); }"
-                               placeholder="Jumlah bayar"
+                <div x-data="{ formatted: '{{ $payment_amount > 0 ? number_format($payment_amount, 0, ',', '.') : '' }}' }">
+                    <input type="text" x-model="formatted"
+                           x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('payment_amount', n); } else { $wire.set('payment_amount', 0); }"
+                           placeholder="Jumlah bayar"
+                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                    @if($payment_amount > 0 && $payment_amount >= $this->total)
+                        <div class="flex justify-between items-center mt-2 px-3 py-2 bg-emerald-50 rounded-lg">
+                            <span class="text-sm text-gray-600">Kembali</span>
+                            <span class="text-sm font-bold text-emerald-600">Rp {{ number_format($this->change, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+                </div>
+
+                @if(in_array($payment_method, ['transfer', 'debit_card']))
+                    <div>
+                        <input type="text" wire:model="reference_number" placeholder="No. Referensi (opsional)"
                                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                        @if($payment_amount > 0 && $payment_amount >= $this->total)
-                            <div class="flex justify-between items-center mt-2 px-3 py-2 bg-emerald-50 rounded-lg">
-                                <span class="text-sm text-gray-600">Kembali</span>
-                                <span class="text-sm font-bold text-emerald-600">Rp {{ number_format($this->change, 0, ',', '.') }}</span>
-                            </div>
-                        @endif
                     </div>
                 @endif
 
@@ -214,30 +319,6 @@
             </div>
         </div>
     </div>
-
-    {{-- Midtrans --}}
-    <script>
-        document.addEventListener('livewire:initialized', function () {
-            Livewire.on('midtransReady', function (data) {
-                if (data.token) {
-                    snap.pay(data.token, {
-                        onSuccess: function () {
-                            Livewire.dispatch('completeMidtransPayment');
-                        },
-                        onPending: function () {
-                            alert('Pembayaran sedang diproses. Silakan tunggu konfirmasi.');
-                        },
-                        onError: function () {
-                            alert('Pembayaran gagal. Silakan coba lagi.');
-                        },
-                        onClose: function () {}
-                    });
-                }
-            });
-        });
-    </script>
-
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
 
     {{-- Print Modal --}}
     <div id="printModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">

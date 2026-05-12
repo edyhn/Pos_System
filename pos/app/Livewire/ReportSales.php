@@ -9,10 +9,13 @@ use Livewire\WithPagination;
 
 class ReportSales extends Component
 {
+    use WithPagination;
+
     public $storeId;
     public $dateFrom;
     public $dateTo;
     public $storeFilter = '';
+    public $paymentMethod = '';
     public $stores;
     public array $dailyChartData = [];
 
@@ -31,6 +34,7 @@ class ReportSales extends Component
     public function updatedDateFrom() { $this->resetPage(); }
     public function updatedDateTo() { $this->resetPage(); }
     public function updatedStoreFilter() { $this->resetPage(); }
+    public function updatedPaymentMethod() { $this->resetPage(); }
 
     public function render()
     {
@@ -48,6 +52,9 @@ class ReportSales extends Component
         if ($this->dateTo) {
             $query->whereDate('created_at', '<=', $this->dateTo);
         }
+        if ($this->paymentMethod) {
+            $query->where('payment_method', $this->paymentMethod);
+        }
 
         $transactions = $query->with('store', 'user')
             ->orderBy('created_at', 'desc')
@@ -56,12 +63,19 @@ class ReportSales extends Component
         $summary = (clone $query)->selectRaw('
             COUNT(*) as total_transactions,
             COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(tax_amount), 0) as total_tax
+            COALESCE(SUM(tax_amount), 0) as total_tax,
+            COALESCE(AVG(total_amount), 0) as avg_transaction
         ')->first();
 
         $this->dailyChartData = $this->getDailySales();
 
-        return view('livewire.report-sales', compact('transactions', 'summary'));
+        $paymentBreakdown = (clone $query)
+            ->selectRaw('payment_method, COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total')
+            ->groupBy('payment_method')
+            ->get()
+            ->keyBy('payment_method');
+
+        return view('livewire.report-sales', compact('transactions', 'summary', 'paymentBreakdown'));
     }
 
     protected function getDailySales(): array
@@ -74,6 +88,9 @@ class ReportSales extends Component
             $query->where('store_id', $this->storeFilter);
         } elseif ($this->storeId) {
             $query->where('store_id', $this->storeId);
+        }
+        if ($this->paymentMethod) {
+            $query->where('payment_method', $this->paymentMethod);
         }
 
         $rows = $query->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')

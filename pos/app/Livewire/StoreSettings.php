@@ -7,6 +7,7 @@ use App\Models\StoreSetting;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class StoreSettings extends Component
 {
@@ -63,9 +64,9 @@ class StoreSettings extends Component
             'code' => 'nullable|max:50',
             'phone' => 'nullable|max:20',
             'address' => 'nullable',
-            'receipt_footer' => 'nullable|max:500',
+            'receipt_footer' => 'nullable|max:255',
             'printer_type' => 'nullable|in:network,usb',
-            'printer_address' => 'nullable|ip',
+            'printer_address' => 'nullable|string|max:255',
             'printer_port' => 'nullable|numeric|min:1|max:65535',
             'qris_image' => 'nullable|image|max:2048',
         ];
@@ -77,6 +78,7 @@ class StoreSettings extends Component
 
         $data = [
             'name' => $this->name,
+            'slug' => Str::slug($this->name),
             'code' => $this->code,
             'phone' => $this->phone,
             'address' => $this->address,

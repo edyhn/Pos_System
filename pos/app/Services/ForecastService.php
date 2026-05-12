@@ -12,7 +12,7 @@ class ForecastService
     {
         return Transaction::where('store_id', $storeId)
             ->where('status', 'completed')
-            ->whereDate('created_at', '>=', now()->subDays($days))
+            ->where('created_at', '>=', now()->subDays($days - 1)->startOfDay())
             ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date')
@@ -27,7 +27,7 @@ class ForecastService
             ->where('transactions.store_id', $storeId)
             ->where('transactions.status', 'completed')
             ->where('transaction_items.product_id', $productId)
-            ->whereDate('transactions.created_at', '>=', now()->subDays($days))
+            ->where('transactions.created_at', '>=', now()->subDays($days - 1)->startOfDay())
             ->selectRaw('DATE(transactions.created_at) as date, SUM(transaction_items.quantity) as qty, SUM(transaction_items.subtotal) as total')
             ->groupBy('date')
             ->orderBy('date')
@@ -126,7 +126,12 @@ class ForecastService
             $x2Sum += $x * $x;
         }
 
-        $slope = ($n * $xySum - $xSum * $ySum) / ($n * $x2Sum - $xSum * $xSum);
+        $denominator = $n * $x2Sum - $xSum * $xSum;
+        if (abs($denominator) < 1e-10) {
+            return ['slope' => 0, 'intercept' => $n > 0 ? $ySum / $n : 0, 'predictions' => $values];
+        }
+
+        $slope = ($n * $xySum - $xSum * $ySum) / $denominator;
         $intercept = ($ySum - $slope * $xSum) / $n;
 
         $predictions = [];
@@ -155,15 +160,14 @@ class ForecastService
         $n = count($values);
         if ($n < $period) return array_fill(0, $futureDays, 0);
 
-        $recent = array_slice($values, -$period);
-        $avg = round(array_sum($recent) / $period);
-
         $regression = $this->linearRegression($data);
-        $trendFactor = $regression['slope'];
+        $slope = $regression['slope'];
+        $intercept = $regression['intercept'];
 
         $predictions = [];
         for ($i = 0; $i < $futureDays; $i++) {
-            $predicted = round($avg + $trendFactor * ($i + 1));
+            $x = $n + $i + 1;
+            $predicted = round($slope * $x + $intercept);
             $predictions[] = max(0, $predicted);
         }
         return $predictions;

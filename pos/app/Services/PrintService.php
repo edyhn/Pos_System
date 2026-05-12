@@ -77,12 +77,19 @@ class PrintService
             $price = "Rp" . number_format($item->subtotal, 0, ',', '.');
             $printer->text($name . "\n");
             $printer->text(str_pad($qty, 16, ' ', STR_PAD_LEFT) . " " . $price . "\n");
+            if ($item->discount_amount > 0) {
+                $discLabel = $item->discount_name ? "Diskon ({$item->discount_name})" : "Diskon";
+                $printer->text("  $discLabel: -Rp" . number_format($item->discount_amount, 0, ',', '.') . "\n");
+            }
         }
 
         $printer->text(str_repeat('-', 32) . "\n");
 
         $printer->setJustification(Printer::JUSTIFY_RIGHT);
         $printer->text("Subtotal: Rp" . number_format($transaction->subtotal, 0, ',', '.') . "\n");
+        if ($transaction->discount_amount > 0) {
+            $printer->text("Diskon: -Rp" . number_format($transaction->discount_amount, 0, ',', '.') . "\n");
+        }
         if ($transaction->tax_amount > 0) {
             $printer->text("Pajak: Rp" . number_format($transaction->tax_amount, 0, ',', '.') . "\n");
         }
