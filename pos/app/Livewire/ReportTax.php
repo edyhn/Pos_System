@@ -43,7 +43,7 @@ class ReportTax extends Component
 
         $transactions = $query->with('store', 'user')->orderBy('created_at', 'desc')->paginate(20);
 
-        $summary = (clone $query)->selectRaw('
+        $summary = (clone $query)->reorder()->selectRaw('
             COUNT(*) as total,
             COALESCE(SUM(tax_amount), 0) as total_tax,
             COALESCE(SUM(total_amount), 0) as total_sales
