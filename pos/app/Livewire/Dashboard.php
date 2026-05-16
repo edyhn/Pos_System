@@ -42,7 +42,7 @@ class Dashboard extends Component
                     ->today()
                     ->where('status', 'completed')
                     ->selectRaw('COALESCE(SUM(total_amount), 0) as sales, COUNT(*) as count')
-                    ->first();
+                    ->first()?->toArray() ?? ['sales' => 0, 'count' => 0];
             });
 
             $pendingReprint = cache()->remember("dashboard.pending.reprint.{$storeId}", 60, function () use ($storeId) {
@@ -54,8 +54,8 @@ class Dashboard extends Component
                     ->where('status', 'pending')->count();
             });
 
-            $this->todaySales = $todayData->sales;
-            $this->todayTransactions = $todayData->count;
+            $this->todaySales = $todayData['sales'];
+            $this->todayTransactions = $todayData['count'];
             $this->totalProducts = cache()->remember("dashboard.products.count.{$storeId}", 300, function () use ($storeId) {
                 return Product::byStore($storeId)->where('is_active', true)->count();
             });
@@ -63,12 +63,12 @@ class Dashboard extends Component
             $this->draftPos = cache()->remember("dashboard.draftPos.{$storeId}", 60, function () use ($storeId) {
                 return PurchaseOrder::where('store_id', $storeId)
                     ->where('status', 'draft')->with('vendor')->withCount('items')
-                    ->orderBy('created_at', 'desc')->take(5)->get();
+                    ->orderBy('created_at', 'desc')->take(5)->get()->toArray();
             });
             $this->lowStockProducts = cache()->remember("dashboard.lowStock.{$storeId}", 300, function () use ($storeId) {
                 return Product::byStore($storeId)
                     ->where('is_active', true)->whereColumn('stock', '<=', 'min_stock')
-                    ->where('min_stock', '>', 0)->orderBy('stock', 'asc')->take(5)->get();
+                    ->where('min_stock', '>', 0)->orderBy('stock', 'asc')->take(5)->get()->toArray();
             });
             $this->weeklyChartData = $this->getWeeklySales();
             $this->monthlyChartData = $this->getMonthlySales();

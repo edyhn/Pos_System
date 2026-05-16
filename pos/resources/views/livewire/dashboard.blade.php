@@ -160,23 +160,23 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-sm font-semibold text-gray-800">Draft Purchase Order</h2>
-                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{{ $draftPos->count() }}</span>
+                    <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{{ count($draftPos) }}</span>
                 </div>
-                @if($draftPos->count())
+                @if(count($draftPos))
                     <div class="space-y-2">
                         @foreach($draftPos as $po)
-                            <a href="{{ route('purchase-orders.edit', $po) }}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                            <a href="{{ route('purchase-orders.edit', $po['id']) }}" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-lg bg-white border border-gray-200 flex items-center justify-center">
                                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition">#{{ $po->po_number }}</p>
-                                        <p class="text-xs text-gray-400">{{ $po->vendor?->name ?? '-' }} · {{ $po->items_count ?? 0 }} item</p>
+                                        <p class="text-sm font-medium text-gray-800 group-hover:text-blue-600 transition">#{{ $po['po_number'] }}</p>
+                                        <p class="text-xs text-gray-400">{{ $po['vendor']['name'] ?? '-' }} · {{ $po['items_count'] ?? 0 }} item</p>
                                     </div>
                                 </div>
-                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full {{ $po->is_auto_draft ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500' }}">
-                                    {{ $po->is_auto_draft ? 'Otomatis' : 'Manual' }}
+                                <span class="text-[10px] font-medium px-2 py-0.5 rounded-full {{ ($po['is_auto_draft'] ?? false) ? 'bg-orange-50 text-orange-600' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ ($po['is_auto_draft'] ?? false) ? 'Otomatis' : 'Manual' }}
                                 </span>
                             </a>
                         @endforeach
@@ -196,24 +196,24 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-sm font-semibold text-gray-800">Stok Menipis</h2>
-                    <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">{{ $lowStockProducts->count() }}</span>
+                    <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">{{ count($lowStockProducts) }}</span>
                 </div>
-                @if($lowStockProducts->count())
+                @if(count($lowStockProducts))
                     <div class="space-y-2">
                         @foreach($lowStockProducts as $product)
-                            <div class="flex items-center justify-between p-3 rounded-lg {{ $product->stock == 0 ? 'bg-red-50' : 'bg-amber-50' }}">
+                            <div class="flex items-center justify-between p-3 rounded-lg {{ $product['stock'] == 0 ? 'bg-red-50' : 'bg-amber-50' }}">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-white border flex items-center justify-center {{ $product->stock == 0 ? 'border-red-200' : 'border-amber-200' }}">
-                                        <svg class="w-4 h-4 {{ $product->stock == 0 ? 'text-red-400' : 'text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    <div class="w-8 h-8 rounded-lg bg-white border flex items-center justify-center {{ $product['stock'] == 0 ? 'border-red-200' : 'border-amber-200' }}">
+                                        <svg class="w-4 h-4 {{ $product['stock'] == 0 ? 'text-red-400' : 'text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">{{ $product->name }}</p>
-                                        <p class="text-xs text-gray-400">SKU: {{ $product->sku }}</p>
+                                        <p class="text-sm font-medium text-gray-800">{{ $product['name'] }}</p>
+                                        <p class="text-xs text-gray-400">SKU: {{ $product['sku'] }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold {{ $product->stock == 0 ? 'text-red-600' : 'text-amber-600' }}">{{ $product->stock }}</p>
-                                    <p class="text-[10px] text-gray-400">min: {{ $product->min_stock }}</p>
+                                    <p class="text-sm font-bold {{ $product['stock'] == 0 ? 'text-red-600' : 'text-amber-600' }}">{{ $product['stock'] }}</p>
+                                    <p class="text-[10px] text-gray-400">min: {{ $product['min_stock'] }}</p>
                                 </div>
                             </div>
                         @endforeach

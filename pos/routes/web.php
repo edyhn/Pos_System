@@ -11,6 +11,8 @@ Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
+Route::post('midtrans/webhook', [App\Http\Controllers\MidtransWebhookController::class, 'notification'])
+    ->name('midtrans.webhook');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {

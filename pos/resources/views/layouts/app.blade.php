@@ -78,6 +78,7 @@
                 ['route' => 'requests.receipt', 'icon' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>', 'label' => 'Cetak Ulang'],
                 ['route' => 'requests.refund', 'icon' => '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-8 0v1m0 0a4 4 0 00-4 4h12a4 4 0 00-4-4z"/></svg>', 'label' => 'Refund'],
             ];
+            $isActive = fn($items) => collect($items)->contains(fn($item) => $route($item['route']));
         @endphp
 
         {{-- ===== SIDEBAR ===== --}}
@@ -99,81 +100,153 @@
             </div>
 
             {{-- Navigation --}}
-            <nav class="flex-1 sidebar-scroll px-3 py-4 space-y-0.5">
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5">UMUM</p>
-                @foreach($navUmum as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+            <nav x-ref="sidebarNav" class="flex-1 min-h-0 sidebar-scroll px-3 py-4 space-y-0.5">
+                {{-- UMUM --}}
+                <div x-data="{ open: @json($isActive($navUmum)) }"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>UMUM</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navUmum as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
                 @if($isOwner)
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">MASTER DATA</p>
-                @foreach($navMaster as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- MASTER DATA --}}
+                <div x-data="{ open: @json($isActive($navMaster)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>MASTER DATA</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navMaster as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">INVENTORY</p>
-                @foreach($navInventory as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- INVENTORY --}}
+                <div x-data="{ open: @json($isActive($navInventory)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>INVENTORY</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navInventory as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">LAPORAN</p>
-                @foreach($navReports as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- LAPORAN --}}
+                <div x-data="{ open: @json($isActive($navReports)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>LAPORAN</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navReports as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">FORECAST & ANALISIS</p>
-                @foreach($navForecast as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- FORECAST & ANALISIS --}}
+                <div x-data="{ open: @json($isActive($navForecast)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>FORECAST & ANALISIS</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navForecast as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">PERSETUJUAN</p>
-                @foreach($navApprovals as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- PERSETUJUAN --}}
+                <div x-data="{ open: @json($isActive($navApprovals)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>PERSETUJUAN</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navApprovals as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
 
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">PENGATURAN</p>
-                @foreach($navSettings as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- PENGATURAN --}}
+                <div x-data="{ open: @json($isActive($navSettings)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>PENGATURAN</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navSettings as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
                 @endif
 
                 @if($user->isCashier())
-                <p class="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5 mt-5">REQUEST</p>
-                @foreach($navCashierRequests as $item)
-                    <x-nav-item :active="$route($item['route'])"
-                                href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
-                                :icon="$item['icon']">
-                        {{ $item['label'] }}
-                    </x-nav-item>
-                @endforeach
+                {{-- REQUEST --}}
+                <div x-data="{ open: @json($isActive($navCashierRequests)) }" class="mt-5"
+                     x-init="$nextTick(() => { if (open) $el.querySelector('[data-active]')?.scrollIntoView({ block: 'nearest' }); })">
+                    <button @@click="open = !open" class="flex items-center justify-between w-full text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 py-1.5 mb-1 hover:text-white/60 transition rounded-lg hover:bg-white/5">
+                        <span>REQUEST</span>
+                        <svg :class="{'rotate-180': open}" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div x-show="open" x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                        @foreach($navCashierRequests as $item)
+                            <x-nav-item :active="$route($item['route'])"
+                                        href="{{ route(str_replace('.*', '.index', $item['route'])) }}"
+                                        :icon="$item['icon']">
+                                {{ $item['label'] }}
+                            </x-nav-item>
+                        @endforeach
+                    </div>
+                </div>
                 @endif
             </nav>
 
