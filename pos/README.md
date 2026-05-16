@@ -313,3 +313,18 @@ Business logic is extracted into dedicated service classes:
 - **Fix:** Removed redundant `$request->is('api/*')` check in RoleMiddleware (API already uses `auth:sanctum`)
 - **Cleanup:** Removed development artifacts `test_app.php` and `check_data.php`
 
+### 2026-05-16 — Code Review Fixes: Midtrans Flow, N+1 Queries, Race Conditions, Route Model Binding
+
+- **Fix (Critical):** Midtrans payment flow — transactions now created as `pending` without stock decrement; stock only deducted on webhook confirmation. Failed payments restore stock via `incrementStock()`
+- **Fix (Critical):** PO number race condition in `ForecastStock::confirmPO()` — cache lock now wraps the entire create operation
+- **Fix (High):** N+1 queries in Cashier, DiscountService, and ForecastStock — added eager loading (`->with('products')`) and batch sales averages
+- **Fix (High):** Stock not restored on cancelled Midtrans payments — webhook now calls `StockService::incrementStock()`
+- **Optimization:** ReportSales summary computed from paymentBreakdown, reducing 3 clone queries to 2
+- **Optimization:** Cashier product grid capped at 200 items; full pagination should be added for larger catalogs
+- **Optimization:** Merged duplicate `getWeeklySales` / `getCashierWeeklySales` methods in Dashboard
+- **Fix (Medium):** StockMovementOut `return` inside transaction closure now throws `RuntimeException` to trigger proper rollback
+- **Fix (Medium):** Barcode auto-generation now protected by `Cache::lock` to prevent race conditions
+- **Refactor:** Route model binding for `ProductController`, `CategoryController`, `UserController` edit methods
+- **Refactor:** `ActivityLogger` consistently called via static `::log()` across all services
+- **Cleanup:** Merged duplicate Livewire event listeners in cashier Blade view
+
