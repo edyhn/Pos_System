@@ -73,11 +73,14 @@ class Cashier extends Component
 
         $product = Product::where('store_id', $this->storeId)
             ->where('is_active', true)
-            ->where('sku', $barcode)
+            ->where(function ($q) use ($barcode) {
+                $q->where('barcode', $barcode)
+                  ->orWhere('sku', $barcode);
+            })
             ->first();
 
         if (!$product) {
-            session()->flash('error', "Produk dengan SKU '$barcode' tidak ditemukan.");
+            session()->flash('error', "Produk dengan barcode/SKU '$barcode' tidak ditemukan.");
             $this->barcode = '';
             return;
         }
@@ -244,7 +247,8 @@ class Cashier extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('sku', 'like', '%' . $this->search . '%');
+                  ->orWhere('sku', 'like', '%' . $this->search . '%')
+                  ->orWhere('barcode', 'like', '%' . $this->search . '%');
             });
         }
 

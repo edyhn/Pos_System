@@ -1,4 +1,30 @@
 <div>
+    <script>
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'F2' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault();
+                const input = document.getElementById('stockBarcodeInput');
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }
+        });
+
+        document.addEventListener('livewire:initialized', function () {
+            Livewire.on('barcodeScanSuccess', function (data) {
+                // Auto-focus to quantity field after scan
+                setTimeout(() => {
+                    const qtyInput = document.querySelector('input[x-model="formatted"]');
+                    if (qtyInput) {
+                        qtyInput.focus();
+                        qtyInput.select();
+                    }
+                }, 200);
+            });
+        });
+    </script>
+
     @if (session('message'))
         <div class="mb-4 flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -32,6 +58,48 @@
                 </div>
                 <h2 class="font-semibold text-gray-800">Form Barang Masuk</h2>
             </div>
+
+            {{-- Barcode Scanner Section --}}
+            <div class="mb-5 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2zM7 5h10v14H7V5zm2 2h6v2H9V7zm0 4h6v2H9v-2zm0 4h6v2H9v-2z"/></svg>
+                    <span class="text-sm font-semibold text-blue-700">Scan Barcode Produk</span>
+                    <span class="text-[10px] text-blue-400 font-mono bg-white/60 px-2 py-0.5 rounded hidden sm:inline">F2</span>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <div class="relative flex-1">
+                        <input id="stockBarcodeInput"
+                               type="text"
+                               wire:model="barcodeInput"
+                               wire:keydown.enter="scanBarcode"
+                               placeholder="Scan barcode atau ketik SKU, lalu Enter..."
+                               autofocus
+                               class="w-full px-3 py-2.5 border-2 border-blue-300 rounded-lg text-sm font-mono tracking-wider focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none bg-white">
+                    </div>
+                    <button wire:click="scanBarcode" class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                        Scan
+                    </button>
+                </div>
+                @if (session('scan_error'))
+                    <div class="mt-2 flex items-center gap-1.5 text-sm text-red-600 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('scan_error') }}</span>
+                    </div>
+                @endif
+                @if($scannedProductName)
+                    <div class="mt-2 flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>✓ Produk dipilih: <strong>{{ $scannedProductName }}</strong></span>
+                    </div>
+                @endif
+            </div>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="flex-1 h-px bg-gray-200"></div>
+                <span class="text-xs text-gray-400 font-medium">atau pilih manual</span>
+                <div class="flex-1 h-px bg-gray-200"></div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Produk <span class="text-red-500">*</span></label>

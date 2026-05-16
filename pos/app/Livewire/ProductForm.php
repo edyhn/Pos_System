@@ -9,6 +9,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
 use Intervention\Image\Laravel\Facades\Image;
+use App\Services\BarcodeService;
 
 class ProductForm extends Component
 {
@@ -176,6 +177,17 @@ class ProductForm extends Component
             'image' => $imagePath,
             'is_active' => $this->is_active,
         ];
+
+        // Auto-generate barcode if empty on new product
+        if (empty($data['barcode']) && !$this->isEdit) {
+            $store = \App\Models\Store::find($this->storeId);
+            $lastProduct = Product::where('store_id', $this->storeId)
+                ->orderBy('id', 'desc')->first();
+            $nextId = ($lastProduct ? $lastProduct->id : 0) + 1;
+            $data['barcode'] = BarcodeService::generateEAN13(
+                $store->code ?? 'PST', $nextId
+            );
+        }
 
         if ($this->isEdit) {
             Product::where('store_id', $this->storeId)->where('id', $this->productId)->update($data);

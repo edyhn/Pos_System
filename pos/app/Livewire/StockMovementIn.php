@@ -24,6 +24,8 @@ class StockMovementIn extends Component
     public $selectedPo = '';
     public $note = '';
     public $productSearch = '';
+    public $barcodeInput = '';
+    public $scannedProductName = '';
 
     public function mount()
     {
@@ -53,6 +55,35 @@ class StockMovementIn extends Component
         $this->referenceType = 'manual';
         $this->selectedPo = '';
         $this->note = '';
+        $this->barcodeInput = '';
+        $this->scannedProductName = '';
+    }
+
+    public function scanBarcode(): void
+    {
+        $barcode = trim($this->barcodeInput);
+        if (empty($barcode)) return;
+
+        $product = Product::where('store_id', $this->storeId)
+            ->where('is_active', true)
+            ->where(function ($q) use ($barcode) {
+                $q->where('barcode', $barcode)
+                  ->orWhere('sku', $barcode);
+            })
+            ->first();
+
+        if (!$product) {
+            session()->flash('scan_error', "Produk dengan barcode/SKU '$barcode' tidak ditemukan.");
+            $this->barcodeInput = '';
+            $this->scannedProductName = '';
+            return;
+        }
+
+        $this->product_id = $product->id;
+        $this->scannedProductName = $product->name . ' (Stok: ' . $product->stock . ')';
+        $this->barcodeInput = '';
+
+        $this->dispatch('barcodeScanSuccess', productName: $product->name);
     }
 
     public function addStockIn()
@@ -102,7 +133,8 @@ class StockMovementIn extends Component
         if ($this->productSearch) {
             $q->where(function ($query) {
                 $query->where('name', 'like', '%' . $this->productSearch . '%')
-                    ->orWhere('sku', 'like', '%' . $this->productSearch . '%');
+                    ->orWhere('sku', 'like', '%' . $this->productSearch . '%')
+                    ->orWhere('barcode', 'like', '%' . $this->productSearch . '%');
             });
         }
         return $q->orderBy('name')->get();

@@ -32,7 +32,12 @@
             </div>
             <div>
                 <p class="text-xs text-gray-500">Barcode</p>
-                <p class="text-sm font-medium text-gray-800">{{ $product->barcode ?? '-' }}</p>
+                <p class="text-sm font-medium text-gray-800 font-mono">{{ $product->barcode ?? '-' }}</p>
+                @if($product->barcode)
+                    <div class="mt-2 p-2 bg-white border border-gray-100 rounded-lg inline-block">
+                        {!! \App\Services\BarcodeService::toSVG($product->barcode, 1.5, 45) !!}
+                    </div>
+                @endif
             </div>
             <div>
                 <p class="text-xs text-gray-500">Harga Jual</p>
