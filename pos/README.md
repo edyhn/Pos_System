@@ -302,3 +302,14 @@ Business logic is extracted into dedicated service classes:
 - **Optimization:** Dashboard polling reduced 30s→300s, all data points cached
 - **Midtrans removed** — online payment gateway fully removed
 
+### 2026-05-16 — Sidebar Accordion, Cache Fixes, Locale, Artifacts Cleanup
+
+- **Feature:** Sidebar navigation grouped into collapsible accordion sections with auto-expand on active group
+- **Feature:** Sidebar auto-scrolls to active menu item on page load
+- **Fix:** Sidebar not scrollable on small screens — added `min-h-0` to nav element
+- **Fix:** Dashboard "incomplete object" error — cached Eloquent models converted to arrays (`toArray()`) to prevent unserialization failure
+- **Feature:** Registered missing `POST /midtrans/webhook` route for payment gateway callback
+- **Config:** Changed default locale `en` → `id`, fallback `en` → `id`, faker `en_US` → `id_ID`
+- **Fix:** Removed redundant `$request->is('api/*')` check in RoleMiddleware (API already uses `auth:sanctum`)
+- **Cleanup:** Removed development artifacts `test_app.php` and `check_data.php`
+
