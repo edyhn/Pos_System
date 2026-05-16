@@ -10,6 +10,7 @@ class DiscountService
     public function getApplicableDiscounts(int $storeId, array $cart): Collection
     {
         $discounts = Discount::active()->byStore($storeId)
+            ->with('products')
             ->orderBy('priority')
             ->orderBy('stackable')
             ->get();
@@ -31,7 +32,8 @@ class DiscountService
         $appliedDiscounts = [];
 
         foreach ($applicableDiscounts as $discount) {
-            if (!$discount->appliesToProduct((object) ['id' => $item['product_id']])) {
+            $hasProducts = $discount->products->isNotEmpty();
+            if ($hasProducts && !$discount->products->contains('id', $item['product_id'])) {
                 continue;
             }
 

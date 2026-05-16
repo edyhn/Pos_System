@@ -59,13 +59,18 @@ class ForecastStock extends Component
             ->whereNotIn('id', $excludeIds)
             ->get();
 
+        $productIds = $products->pluck('id')->toArray();
+        $avgSalesBatch = !empty($productIds)
+            ? $service->getBatchDailySalesAvg($this->storeId, $productIds, 30)
+            : [];
+
         $groups = [];
         $count = 0;
         $totalQty = 0;
         $totalPrice = 0;
 
         foreach ($products as $product) {
-            $avgDailySales = $service->getProductDailySalesAvg($product, 30);
+            $avgDailySales = $avgSalesBatch[$product->id] ?? 0;
             $reorder = $service->reorderRecommendation($product, $avgDailySales, $this->leadTimeDays, $this->safetyStock);
             if ($reorder['recommended_qty'] <= 0) continue;
 
@@ -144,7 +149,6 @@ class ForecastStock extends Component
                 $lock = Cache::lock('po-auto-number-' . date('Ymd'), 10);
                 $lock->block(5);
                 $poNumber = 'PO-FCST-' . date('Ymd') . '-' . str_pad(PurchaseOrder::whereDate('created_at', today())->where('store_id', $this->storeId)->count() + 1, 4, '0', STR_PAD_LEFT);
-                $lock->release();
 
                 $po = PurchaseOrder::create([
                     'store_id' => $this->storeId,
@@ -165,6 +169,8 @@ class ForecastStock extends Component
                         'subtotal' => $item['subtotal'],
                     ]);
                 }
+
+                $lock->release();
 
                 $poNumbers[] = $poNumber;
                 \App\Services\ActivityLogger::log('create', 'Draft PO dari forecast: ' . $poNumber . ' (' . $group['vendor_name'] . ')');

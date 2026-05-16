@@ -73,40 +73,38 @@ class StockMovementOut extends Component
             'note' => 'required|min:3',
         ]);
 
-        $success = false;
-        DB::transaction(function () use (&$success) {
-            $query = Product::where('store_id', $this->storeId)
-                ->where('id', $this->product_id);
-            $product = DB::connection()->getDriverName() === 'sqlite'
-                ? $query->firstOrFail()
-                : $query->lockForUpdate()->firstOrFail();
+        try {
+            DB::transaction(function () {
+                $query = Product::where('store_id', $this->storeId)
+                    ->where('id', $this->product_id);
+                $product = DB::connection()->getDriverName() === 'sqlite'
+                    ? $query->firstOrFail()
+                    : $query->lockForUpdate()->firstOrFail();
 
-            if ($this->quantity > $product->stock) {
-                session()->flash('error', 'Stok tidak mencukupi. Stok saat ini: ' . $product->stock);
-                return;
-            }
+                if ($this->quantity > $product->stock) {
+                    throw new \RuntimeException('Stok tidak mencukupi. Stok saat ini: ' . $product->stock);
+                }
 
-            StockMovement::create([
-                'store_id' => $this->storeId,
-                'product_id' => $this->product_id,
-                'user_id' => auth()->id(),
-                'reference_type' => $this->referenceType,
-                'reference_id' => null,
-                'type' => 'out',
-                'quantity' => $this->quantity,
-                'note' => $this->note,
-            ]);
+                StockMovement::create([
+                    'store_id' => $this->storeId,
+                    'product_id' => $this->product_id,
+                    'user_id' => auth()->id(),
+                    'reference_type' => $this->referenceType,
+                    'reference_id' => null,
+                    'type' => 'out',
+                    'quantity' => $this->quantity,
+                    'note' => $this->note,
+                ]);
 
-            $product->decrement('stock', $this->quantity);
+                $product->decrement('stock', $this->quantity);
 
-            \App\Services\ActivityLogger::log('create', 'Barang keluar: ' . $product->name . ' (' . $this->quantity . ') - ' . $this->referenceType);
+                \App\Services\ActivityLogger::log('create', 'Barang keluar: ' . $product->name . ' (' . $this->quantity . ') - ' . $this->referenceType);
+            });
 
-            $success = true;
-        });
-
-        if (!$success) return;
-
-        session()->flash('message', 'Barang keluar berhasil dicatat.');
+            session()->flash('message', 'Barang keluar berhasil dicatat.');
+        } catch (\RuntimeException $e) {
+            session()->flash('error', $e->getMessage());
+        }
         $this->showForm = false;
     }
 

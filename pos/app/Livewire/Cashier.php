@@ -252,13 +252,13 @@ class Cashier extends Component
             });
         }
 
-        $products = $query->orderBy('name')->get();
+        $products = $query->orderBy('name')->take(200)->get();
         $categories = Category::where('store_id', $this->storeId)->where('is_active', true)->get();
-        $activeDiscounts = Discount::byStore($this->storeId)->active()->orderBy('priority', 'desc')->get();
+        $activeDiscounts = Discount::byStore($this->storeId)->active()->with('products')->orderBy('priority', 'desc')->get();
 
         $discountedProductIds = collect();
         foreach ($activeDiscounts as $discount) {
-            $discountProducts = $discount->products()->pluck('product_id');
+            $discountProducts = $discount->products->pluck('id');
             if ($discountProducts->isEmpty()) {
                 $discountedProductIds = $products->pluck('id');
                 break;

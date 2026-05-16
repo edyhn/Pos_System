@@ -14,8 +14,8 @@ class CategoryController extends Controller
         return view('categories.create');
     }
 
-    public function edit(string $id)
+    public function edit(\App\Models\Category $category)
     {
-        return view('categories.edit', compact('id'));
+        return view('categories.edit', compact('category'));
     }
 }

@@ -180,13 +180,19 @@ class ProductForm extends Component
 
         // Auto-generate barcode if empty on new product
         if (empty($data['barcode']) && !$this->isEdit) {
-            $store = \App\Models\Store::find($this->storeId);
-            $lastProduct = Product::where('store_id', $this->storeId)
-                ->orderBy('id', 'desc')->first();
-            $nextId = ($lastProduct ? $lastProduct->id : 0) + 1;
-            $data['barcode'] = BarcodeService::generateEAN13(
-                $store->code ?? 'PST', $nextId
-            );
+            $lock = \Illuminate\Support\Facades\Cache::lock('barcode-' . $this->storeId, 10);
+            $lock->block(5);
+            try {
+                $store = \App\Models\Store::find($this->storeId);
+                $lastProduct = Product::where('store_id', $this->storeId)
+                    ->orderBy('id', 'desc')->first();
+                $nextId = ($lastProduct ? $lastProduct->id : 0) + 1;
+                $data['barcode'] = BarcodeService::generateEAN13(
+                    $store->code ?? 'PST', $nextId
+                );
+            } finally {
+                $lock->release();
+            }
         }
 
         if ($this->isEdit) {

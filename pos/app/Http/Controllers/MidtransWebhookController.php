@@ -101,7 +101,21 @@ class MidtransWebhookController extends Controller
                 }
             } elseif (in_array($transactionStatus, ['deny', 'cancel', 'expire'])) {
                 $transaction->update(['status' => 'cancelled']);
-                Log::info('Midtrans payment failed', ['order_id' => $orderId, 'status' => $transactionStatus]);
+                foreach ($transaction->items as $item) {
+                    $product = $item->product;
+                    if ($product) {
+                        $this->stockService->incrementStock(
+                            $product,
+                            $item->quantity,
+                            'midtrans_restore',
+                            $transaction->id,
+                            $transaction->store_id,
+                            $transaction->user_id,
+                            'Midtrans gagal, restore stok #' . $transaction->invoice_number,
+                        );
+                    }
+                }
+                Log::info('Midtrans payment failed, stock restored', ['order_id' => $orderId, 'status' => $transactionStatus]);
             }
 
             return response()->json(['status' => 'ok']);

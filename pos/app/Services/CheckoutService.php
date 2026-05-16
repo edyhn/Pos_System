@@ -15,7 +15,6 @@ class CheckoutService
 {
     public function __construct(
         private StockService $stockService,
-        private ActivityLogger $activityLogger,
     ) {}
 
     public function validateCart(array $cart, int $storeId): Collection
@@ -100,17 +99,19 @@ class CheckoutService
         $discountAmount = $discountData['total_discount'] ?? 0;
         $total = max(0, $subtotal + $taxAmount - $discountAmount);
 
-        if ($paymentMethod === 'cash' && $paymentAmount < $total) {
+        $isMidtrans = $paymentMethod === 'midtrans';
+
+        if (!$isMidtrans && $paymentMethod === 'cash' && $paymentAmount < $total) {
             throw new \RuntimeException('Pembayaran kurang dari total.');
         }
 
-        $changeAmount = $paymentMethod === 'cash' ? max(0, $paymentAmount - $total) : 0;
+        $changeAmount = !$isMidtrans && $paymentMethod === 'cash' ? max(0, $paymentAmount - $total) : 0;
 
         return DB::transaction(function () use (
             $cart, $products, $customerName, $paymentMethod,
             $paymentAmount, $changeAmount, $invoiceNumber,
             $subtotal, $taxAmount, $discountAmount, $total, $storeId, $userId, $referenceNumber,
-            $discountData,
+            $discountData, $isMidtrans,
         ) {
             $transaction = Transaction::create([
                 'store_id' => $storeId,
@@ -125,7 +126,7 @@ class CheckoutService
                 'change_amount' => $changeAmount,
                 'payment_method' => $paymentMethod,
                 'reference_number' => $referenceNumber,
-                'status' => 'completed',
+                'status' => $isMidtrans ? 'pending' : 'completed',
             ]);
 
             foreach ($cart as $index => $item) {
@@ -143,6 +144,8 @@ class CheckoutService
                     'discount_amount' => $itemDiscountAmount,
                     'discount_name' => $itemDiscountNames,
                 ]);
+
+                if ($isMidtrans) continue;
 
                 $product = $products->get($item['product_id']);
 
@@ -169,7 +172,7 @@ class CheckoutService
                 }
             }
 
-            $this->activityLogger->log(
+            ActivityLogger::log(
                 'create',
                 'Transaksi penjualan: ' . $invoiceNumber . ' - Rp ' . number_format($total, 0, ',', '.'),
                 $storeId,

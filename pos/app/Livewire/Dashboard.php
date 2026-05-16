@@ -95,48 +95,23 @@ class Dashboard extends Component
                     ->where('user_id', $user->id)->count();
             });
             $this->pendingRequests = $pendingReprint + $pendingRefund;
-            $this->weeklyChartData = $this->getCashierWeeklySales();
+            $this->weeklyChartData = $this->getWeeklySales($user->id);
         }
     }
 
-    protected function getCashierWeeklySales(): array
-    {
-        $user = auth()->user();
-        $storeId = $this->storeId;
-
-        $rows = Transaction::byStore($storeId)
-            ->where('status', 'completed')
-            ->where('user_id', $user->id)
-            ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-            ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->pluck('total', 'date');
-
-        $labels = [];
-        $values = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i)->format('Y-m-d');
-            $labels[] = now()->subDays($i)->format('D');
-            $values[] = (int) ($rows[$date] ?? 0);
-        }
-
-        return [
-            'labels' => $labels,
-            'values' => $values,
-        ];
-    }
-
-    protected function getWeeklySales(): array
+    protected function getWeeklySales(?int $userId = null): array
     {
         $storeId = $this->storeId;
-        $cacheKey = "dashboard.weekly.{$storeId}";
+        $cacheKey = "dashboard.weekly.{$storeId}" . ($userId ? ".{$userId}" : '');
 
-        $rows = cache()->remember($cacheKey, 300, function () use ($storeId) {
-            return Transaction::byStore($storeId)
+        $rows = cache()->remember($cacheKey, 300, function () use ($storeId, $userId) {
+            $query = Transaction::byStore($storeId)
                 ->where('status', 'completed')
-                ->where('created_at', '>=', now()->subDays(6)->startOfDay())
-                ->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+                ->where('created_at', '>=', now()->subDays(6)->startOfDay());
+            if ($userId) {
+                $query->where('user_id', $userId);
+            }
+            return $query->selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
                 ->groupBy('date')
                 ->orderBy('date')
                 ->pluck('total', 'date')

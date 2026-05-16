@@ -14,8 +14,8 @@ class UserController extends Controller
         return view('users.create');
     }
 
-    public function edit(string $id)
+    public function edit(\App\Models\User $user)
     {
-        return view('users.edit', compact('id'));
+        return view('users.edit', compact('user'));
     }
 }

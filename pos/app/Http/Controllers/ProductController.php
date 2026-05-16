@@ -24,8 +24,8 @@ class ProductController extends Controller
         return view('products.show', compact('product'));
     }
 
-    public function edit(string $id)
+    public function edit(\App\Models\Product $product)
     {
-        return view('products.edit', compact('id'));
+        return view('products.edit', compact('product'));
     }
 }

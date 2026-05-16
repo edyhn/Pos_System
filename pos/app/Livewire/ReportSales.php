@@ -60,20 +60,22 @@ class ReportSales extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        $summary = (clone $query)->selectRaw('
-            COUNT(*) as total_transactions,
-            COALESCE(SUM(total_amount), 0) as total_revenue,
-            COALESCE(SUM(tax_amount), 0) as total_tax,
-            COALESCE(AVG(total_amount), 0) as avg_transaction
-        ')->first();
-
-        $this->dailyChartData = $this->getDailySales();
-
         $paymentBreakdown = (clone $query)
             ->selectRaw('payment_method, COUNT(*) as count, COALESCE(SUM(total_amount), 0) as total')
             ->groupBy('payment_method')
             ->get()
             ->keyBy('payment_method');
+
+        $summary = (object) [
+            'total_transactions' => $paymentBreakdown->sum('count'),
+            'total_revenue' => $paymentBreakdown->sum('total'),
+            'total_tax' => (clone $query)->sum('tax_amount'),
+            'avg_transaction' => $paymentBreakdown->sum('count') > 0
+                ? round($paymentBreakdown->sum('total') / $paymentBreakdown->sum('count'), 2)
+                : 0,
+        ];
+
+        $this->dailyChartData = $this->getDailySales();
 
         return view('livewire.report-sales', compact('transactions', 'summary', 'paymentBreakdown'));
     }

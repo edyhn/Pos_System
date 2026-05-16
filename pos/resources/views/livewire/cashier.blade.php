@@ -11,6 +11,13 @@
                 document.getElementById('printCustomer').textContent = data.customerName || '-';
                 document.getElementById('printModal').classList.remove('hidden');
                 setTimeout(() => document.getElementById('barcodeInput')?.focus(), 100);
+
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('Transaksi Berhasil', {
+                        body: data.invoiceNumber + ' - Rp ' + new Intl.NumberFormat('id-ID').format(data.total),
+                        icon: '/favicon.ico'
+                    });
+                }
             });
 
             Livewire.on('barcodeScanned', function (data) {
@@ -64,17 +71,6 @@
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
-
-        document.addEventListener('livewire:initialized', function () {
-            Livewire.on('transactionCompleted', function (data) {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification('Transaksi Berhasil', {
-                        body: data.invoiceNumber + ' - Rp ' + new Intl.NumberFormat('id-ID').format(data.total),
-                        icon: '/favicon.ico'
-                    });
-                }
-            });
-        });
     </script>
 
     <div class="flex gap-4 h-[calc(100vh-8rem)]">
