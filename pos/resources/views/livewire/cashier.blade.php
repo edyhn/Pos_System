@@ -23,7 +23,8 @@
             Livewire.on('barcodeScanned', function (data) {
                 const flash = document.getElementById('barcodeFlash');
                 if (flash) {
-                    flash.textContent = '✓ ' + data.productName;
+                    const flashSpan = flash.querySelector('span');
+                    if (flashSpan) flashSpan.textContent = '✓ ' + data.productName;
                     flash.classList.remove('hidden', 'opacity-0');
                     flash.classList.add('opacity-100');
                     setTimeout(() => {
@@ -58,16 +59,6 @@
             pendingPrintId = null;
         }
 
-        let barcodeTimer = null;
-        function onBarcodeInput(el) {
-            clearTimeout(barcodeTimer);
-            barcodeTimer = setTimeout(() => {
-                if (el.value.length > 0) {
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            }, 100);
-        }
-
         if ('Notification' in window && Notification.permission === 'default') {
             Notification.requestPermission();
         }
@@ -84,7 +75,7 @@
                         <input id="barcodeInput"
                                type="text"
                                wire:model.live="barcode"
-                               wire:keydown.enter="scanBarcode"
+                               x-on:keydown.enter="$wire.scanBarcode($el.value)"
                                placeholder="Scan barcode (tekan F2)..."
                                autofocus
                                class="w-full pl-9 pr-4 py-2.5 border-2 border-blue-400 rounded-lg text-sm font-mono tracking-wider focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none bg-blue-50/30">

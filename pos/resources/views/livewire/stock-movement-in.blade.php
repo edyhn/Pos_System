@@ -70,8 +70,8 @@
                     <div class="relative flex-1">
                         <input id="stockBarcodeInput"
                                type="text"
-                               wire:model="barcodeInput"
-                               wire:keydown.enter="scanBarcode"
+                               wire:model.live="barcodeInput"
+                               x-on:keydown.enter="$wire.scanBarcode($el.value)"
                                placeholder="Scan barcode atau ketik SKU, lalu Enter..."
                                autofocus
                                class="w-full px-3 py-2.5 border-2 border-blue-300 rounded-lg text-sm font-mono tracking-wider focus:ring-2 focus:ring-blue-500 focus:border-blue-600 outline-none bg-white">

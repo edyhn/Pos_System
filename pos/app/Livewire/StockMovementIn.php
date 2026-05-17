@@ -59,9 +59,9 @@ class StockMovementIn extends Component
         $this->scannedProductName = '';
     }
 
-    public function scanBarcode(): void
+    public function scanBarcode($barcode = null): void
     {
-        $barcode = trim($this->barcodeInput);
+        $barcode = $barcode ? trim($barcode) : trim($this->barcodeInput);
         if (empty($barcode)) return;
 
         $product = Product::where('store_id', $this->storeId)

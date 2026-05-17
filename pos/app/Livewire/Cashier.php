@@ -76,9 +76,9 @@ class Cashier extends Component
         $this->cart = array_values($this->cart);
     }
 
-    public function scanBarcode(): void
+    public function scanBarcode($barcode = null): void
     {
-        $barcode = trim($this->barcode);
+        $barcode = $barcode ? trim($barcode) : trim($this->barcode);
         if (empty($barcode)) return;
 
         $product = Product::where('store_id', $this->storeId)
