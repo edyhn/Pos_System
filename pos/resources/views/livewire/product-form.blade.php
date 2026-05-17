@@ -35,6 +35,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="name" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('name') border-red-500 @enderror">
                     @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('slug') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
@@ -48,12 +49,13 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
-                    <select wire:model="vendor_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                    <select wire:model="vendor_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('vendor_id') border-red-500 @enderror">
                         <option value="">Pilih Vendor</option>
                         @foreach ($vendors as $vendor)
                             <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
                         @endforeach
                     </select>
+                    @error('vendor_id') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">SKU</label>
@@ -92,8 +94,9 @@
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">Rp</span>
                         <input type="text" x-model="formatted"
                                x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('cost_price', n); } else { $wire.set('cost_price', 0); }"
-                               class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                               class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('cost_price') border-red-500 @enderror">
                     </div>
+                    @error('cost_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Stok Awal</label>
@@ -109,13 +112,15 @@
                     <div x-data="{ formatted: '{{ $min_stock ? number_format($min_stock, 0, ',', '.') : '' }}' }">
                         <input type="text" x-model="formatted"
                                x-on:input="formatted = $event.target.value.replace(/\D/g, ''); if (formatted) { let n = parseInt(formatted); formatted = n.toLocaleString('id-ID'); $wire.set('min_stock', n); } else { $wire.set('min_stock', 0); }"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('min_stock') border-red-500 @enderror">
                     </div>
+                    @error('min_stock') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <p class="text-[11px] text-gray-400 mt-1">Trigger auto PO saat stok di bawah ini</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
-                    <input type="text" wire:model="unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white" placeholder="pcs">
+                    <input type="text" wire:model="unit" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('unit') border-red-500 @enderror" placeholder="pcs">
+                    @error('unit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
 
@@ -130,7 +135,8 @@
                         @if($is_taxed)
                             <div class="mt-2 pl-6">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Tarif Pajak (%)</label>
-                                <input type="number" wire:model="tax_rate" class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white" placeholder="11">
+                                <input type="number" wire:model="tax_rate" class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('tax_rate') border-red-500 @enderror" placeholder="11">
+                                @error('tax_rate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                         @endif
                     </div>
@@ -142,7 +148,8 @@
                         @if($is_subscription)
                             <div class="mt-2 pl-6">
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Masa Aktif (hari)</label>
-                                <input type="number" wire:model="subscription_days" class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white" placeholder="30">
+                                <input type="number" wire:model="subscription_days" class="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white @error('subscription_days') border-red-500 @enderror" placeholder="30">
+                                @error('subscription_days') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                         @endif
                     </div>
