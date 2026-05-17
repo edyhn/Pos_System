@@ -68,11 +68,12 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Barcode</label>
                     <div class="relative">
-                        <input type="text" wire:model="barcode" placeholder="Scan atau ketik barcode..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white font-mono">
+                        <input type="text" wire:model="barcode" x-on:keydown.enter.prevent="" placeholder="Scan atau ketik barcode..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white font-mono @error('barcode') border-red-500 @enderror">
                         @if(!$isEdit && !$barcode)
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-blue-400 font-medium">otomatis jika kosong</span>
                         @endif
                     </div>
+                    @error('barcode') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     <p class="text-[11px] text-gray-400 mt-1">Kosongkan untuk generate EAN-13 otomatis</p>
                 </div>
                 <div>

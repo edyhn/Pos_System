@@ -42,7 +42,8 @@ class StockIndex extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('sku', 'like', '%' . $this->search . '%');
+                  ->orWhere('sku', 'like', '%' . $this->search . '%')
+                  ->orWhere('barcode', 'like', '%' . $this->search . '%');
             });
         }
 
