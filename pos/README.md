@@ -328,3 +328,10 @@ Business logic is extracted into dedicated service classes:
 - **Refactor:** `ActivityLogger` consistently called via static `::log()` across all services
 - **Cleanup:** Merged duplicate Livewire event listeners in cashier Blade view
 
+### 2026-05-17 — Barcode Scanner macOS Fix
+
+- **Fix (macOS):** Barcode scan race condition on macOS/Safari — replaced `wire:keydown.enter` with Alpine.js `x-on:keydown.enter="$wire.scanBarcode($el.value)"` to read input value directly from DOM, bypassing Livewire model sync race
+- **Fix:** Barcode flash notification no longer destroys inner SVG icon on first scan (`textContent` → `querySelector('span').textContent`)
+- **Cleanup:** Removed unused `onBarcodeInput()` dead code from cashier view
+- **Enhancement:** Stock movement-in barcode input uses `.live` modifier for responsive model sync
+
