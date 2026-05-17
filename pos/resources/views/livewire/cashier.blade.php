@@ -119,8 +119,8 @@
             <div class="flex-1 overflow-y-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 content-start">
                 @forelse ($products as $product)
                     <button wire:click="addToCart({{ $product->id }})"
-                            class="relative text-left p-3 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-150 text-sm group {{ $product->stock <= 0 ? 'opacity-60' : '' }}">
-                        @if($product->stock <= 0)
+                            class="relative text-left p-3 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-150 text-sm group {{ $product->available_stock <= 0 ? 'opacity-60' : '' }}">
+                        @if($product->available_stock <= 0)
                             <div class="absolute inset-0 bg-white/40 rounded-xl flex items-center justify-center z-10">
                                 <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">HABIS</span>
                             </div>
@@ -135,8 +135,8 @@
                         <p class="font-medium text-gray-800 text-sm truncate group-hover:text-blue-600 transition">{{ $product->name }}</p>
                         <p class="text-blue-600 font-bold mt-0.5">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
                         <div class="flex items-center gap-1.5 mt-1">
-                            <span class="text-[11px] {{ $product->stock <= 0 ? 'text-red-500' : ($product->stock <= $product->min_stock ? 'text-amber-500' : 'text-gray-400') }}">
-                                Stok: {{ $product->stock }}
+                            <span class="text-[11px] {{ $product->available_stock <= 0 ? 'text-red-500' : ($product->available_stock <= $product->min_stock ? 'text-amber-500' : 'text-gray-400') }}">
+                                Stok: {{ $product->available_stock }}
                             </span>
                             @if($discountedProductIds->contains($product->id))
                                 <span class="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-medium">Diskon</span>

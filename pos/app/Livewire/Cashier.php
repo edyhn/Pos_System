@@ -271,6 +271,13 @@ class Cashier extends Component
         $categories = Category::where('store_id', $this->storeId)->where('is_active', true)->get();
         $activeDiscounts = Discount::byStore($this->storeId)->active()->with('products')->orderBy('priority', 'desc')->get();
 
+        $cartQuantities = collect($this->cart)->groupBy('product_id')->map(fn($items) => $items->sum('quantity'));
+
+        $products->each(function ($product) use ($cartQuantities) {
+            $inCart = $cartQuantities->get($product->id, 0);
+            $product->available_stock = max(0, $product->stock - $inCart);
+        });
+
         $discountedProductIds = collect();
         foreach ($activeDiscounts as $discount) {
             $discountProducts = $discount->products->pluck('id');
