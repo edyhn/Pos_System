@@ -77,6 +77,6 @@ class Product extends Model
 
     public function isLowStock(): bool
     {
-        return $this->stock <= $this->min_stock;
+        return $this->stock <= 0 || ($this->min_stock > 0 && $this->stock <= $this->min_stock);
     }
 }

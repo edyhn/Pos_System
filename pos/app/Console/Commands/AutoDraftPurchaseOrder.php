@@ -23,8 +23,12 @@ class AutoDraftPurchaseOrder extends Command
         foreach ($stores as $store) {
             $lowStockProducts = Product::where('store_id', $store->id)
                 ->where('is_active', true)
-                ->whereColumn('stock', '<=', 'min_stock')
-                ->where('min_stock', '>', 0)
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereColumn('stock', '<=', 'min_stock')
+                           ->where('min_stock', '>', 0);
+                    })->orWhere('stock', 0);
+                })
                 ->get();
 
             if ($lowStockProducts->isEmpty()) {

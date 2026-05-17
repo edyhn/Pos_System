@@ -48,9 +48,13 @@ class NotificationBell extends Component
 
             $this->lowStockProducts = Product::byStore($storeId)
                 ->where('is_active', true)
-                ->whereColumn('stock', '<=', 'min_stock')
-                ->where('min_stock', '>', 0)
-                ->latest()->take(5)->get();
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereColumn('stock', '<=', 'min_stock')
+                           ->where('min_stock', '>', 0);
+                    })->orWhere('stock', 0);
+                })
+                ->latest('stock')->take(5)->get();
 
             $this->draftPos = PurchaseOrder::where('store_id', $storeId)
                 ->where('status', 'draft')
@@ -80,9 +84,13 @@ class NotificationBell extends Component
 
             $this->lowStockProducts = Product::byStore($storeId)
                 ->where('is_active', true)
-                ->whereColumn('stock', '<=', 'min_stock')
-                ->where('min_stock', '>', 0)
-                ->latest()->take(5)->get();
+                ->where(function ($q) {
+                    $q->where(function ($q2) {
+                        $q2->whereColumn('stock', '<=', 'min_stock')
+                           ->where('min_stock', '>', 0);
+                    })->orWhere('stock', 0);
+                })
+                ->latest('stock')->take(5)->get();
 
             $this->count = $reprintPending + $refundPending
                 + $this->lowStockProducts->count();

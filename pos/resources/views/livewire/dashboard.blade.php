@@ -195,16 +195,16 @@
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-sm font-semibold text-gray-800">Stok Menipis</h2>
-                    <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">{{ count($lowStockProducts) }}</span>
+                    <h2 class="text-sm font-semibold text-red-700">Stok Habis</h2>
+                    <span class="text-xs bg-red-50 text-red-500 px-2 py-0.5 rounded-full">{{ count($outOfStockProducts) }}</span>
                 </div>
-                @if(count($lowStockProducts))
+                @if(count($outOfStockProducts))
                     <div class="space-y-2">
-                        @foreach($lowStockProducts as $product)
-                            <div class="flex items-center justify-between p-3 rounded-lg {{ $product['stock'] == 0 ? 'bg-red-50' : 'bg-amber-50' }}">
+                        @foreach($outOfStockProducts as $product)
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-red-50">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-white border flex items-center justify-center {{ $product['stock'] == 0 ? 'border-red-200' : 'border-amber-200' }}">
-                                        <svg class="w-4 h-4 {{ $product['stock'] == 0 ? 'text-red-400' : 'text-amber-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    <div class="w-8 h-8 rounded-lg bg-white border border-red-200 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-800">{{ $product['name'] }}</p>
@@ -212,7 +212,42 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold {{ $product['stock'] == 0 ? 'text-red-600' : 'text-amber-600' }}">{{ $product['stock'] }}</p>
+                                    <p class="text-sm font-bold text-red-600">{{ $product['stock'] }}</p>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <a href="{{ route('stock.index') }}" class="mt-3 inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                        Lihat semua stok
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                @else
+                    <div class="flex flex-col items-center py-3 text-gray-400">
+                        <p class="text-sm">Tidak ada stok habis</p>
+                    </div>
+                @endif
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-semibold text-amber-700">Stok Menipis</h2>
+                    <span class="text-xs bg-amber-50 text-amber-500 px-2 py-0.5 rounded-full">{{ count($lowStockProducts) }}</span>
+                </div>
+                @if(count($lowStockProducts))
+                    <div class="space-y-2">
+                        @foreach($lowStockProducts as $product)
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-amber-50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-white border border-amber-200 flex items-center justify-center">
+                                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">{{ $product['name'] }}</p>
+                                        <p class="text-xs text-gray-400">SKU: {{ $product['sku'] }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-amber-600">{{ $product['stock'] }}</p>
                                     <p class="text-[10px] text-gray-400">min: {{ $product['min_stock'] }}</p>
                                 </div>
                             </div>
@@ -223,8 +258,7 @@
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 @else
-                    <div class="flex flex-col items-center py-8 text-gray-400">
-                        <svg class="w-10 h-10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="flex flex-col items-center py-3 text-gray-400">
                         <p class="text-sm">Semua stok aman</p>
                     </div>
                 @endif

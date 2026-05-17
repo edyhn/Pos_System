@@ -210,7 +210,9 @@
                                     class="w-6 h-6 flex items-center justify-center bg-white border border-gray-200 rounded hover:bg-gray-100 text-sm font-medium text-gray-600 transition">-</button>
                             <span class="w-8 text-center text-sm font-semibold text-gray-800">{{ $item['quantity'] }}</span>
                             <button wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
-                                    class="w-6 h-6 flex items-center justify-center bg-white border border-gray-200 rounded hover:bg-gray-100 text-sm font-medium text-gray-600 transition">+</button>
+                                    class="w-6 h-6 flex items-center justify-center bg-white border border-gray-200 rounded text-sm font-medium transition
+                                    {{ $item['quantity'] >= $item['stock'] ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100 text-gray-600' }}"
+                                    {{ $item['quantity'] >= $item['stock'] ? 'disabled' : '' }}>+</button>
                         </div>
                         <p class="text-sm font-bold text-gray-800 w-20 text-right">Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</p>
                         <button wire:click="removeFromCart({{ $index }})" class="text-red-300 hover:text-red-500 transition p-1 opacity-0 group-hover:opacity-100">

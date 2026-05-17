@@ -20,6 +20,7 @@ class Dashboard extends Component
     public $pendingApprovals = 0;
     public $draftPos = [];
     public $pendingRequests = 0;
+    public $outOfStockProducts = [];
     public $lowStockProducts = [];
     public array $weeklyChartData = [];
     public array $monthlyChartData = [];
@@ -65,10 +66,19 @@ class Dashboard extends Component
                     ->where('status', 'draft')->with('vendor')->withCount('items')
                     ->orderBy('created_at', 'desc')->take(5)->get()->toArray();
             });
+            $this->outOfStockProducts = cache()->remember("dashboard.outOfStock.{$storeId}", 300, function () use ($storeId) {
+                return Product::byStore($storeId)
+                    ->where('is_active', true)
+                    ->where('stock', 0)
+                    ->orderBy('name')->take(5)->get()->toArray();
+            });
             $this->lowStockProducts = cache()->remember("dashboard.lowStock.{$storeId}", 300, function () use ($storeId) {
                 return Product::byStore($storeId)
-                    ->where('is_active', true)->whereColumn('stock', '<=', 'min_stock')
-                    ->where('min_stock', '>', 0)->orderBy('stock', 'asc')->take(5)->get()->toArray();
+                    ->where('is_active', true)
+                    ->whereColumn('stock', '<=', 'min_stock')
+                    ->where('min_stock', '>', 0)
+                    ->where('stock', '>', 0)
+                    ->orderBy('stock', 'asc')->take(5)->get()->toArray();
             });
             $this->weeklyChartData = $this->getWeeklySales();
             $this->monthlyChartData = $this->getMonthlySales();

@@ -40,10 +40,20 @@ class Cashier extends Component
             ->where('is_active', true)
             ->findOrFail($productId);
 
+        if ($product->stock <= 0) {
+            session()->flash('error', "{$product->name} sudah habis.");
+            return;
+        }
+
         $existingKey = collect($this->cart)->search(fn($item) => $item['product_id'] === $productId);
 
         if ($existingKey !== false) {
-            $this->cart[$existingKey]['quantity']++;
+            $currentQty = $this->cart[$existingKey]['quantity'];
+            if ($currentQty + 1 > $product->stock) {
+                session()->flash('error', "Stok {$product->name} hanya tersedia {$product->stock}.");
+                return;
+            }
+            $this->cart[$existingKey]['quantity'] = $currentQty + 1;
             $this->cart[$existingKey]['subtotal'] = $this->cart[$existingKey]['quantity'] * $this->cart[$existingKey]['price'];
         } else {
             $this->cart[] = [
@@ -94,9 +104,14 @@ class Cashier extends Component
     public function updateQuantity($index, $quantity): void
     {
         if (!isset($this->cart[$index])) return;
-        $quantity = max(1, (int) $quantity);
+        $maxStock = $this->cart[$index]['stock'];
+        $quantity = max(1, min((int) $quantity, $maxStock));
         $this->cart[$index]['quantity'] = $quantity;
         $this->cart[$index]['subtotal'] = $quantity * $this->cart[$index]['price'];
+
+        if ((int) $quantity >= $maxStock) {
+            session()->flash('error', "Stok {$this->cart[$index]['name']} maksimal {$maxStock}.");
+        }
     }
 
     public function getSubtotalProperty(): float
