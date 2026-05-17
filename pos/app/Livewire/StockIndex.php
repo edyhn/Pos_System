@@ -50,7 +50,7 @@ class StockIndex extends Component
             $query->whereColumn('stock', '<=', 'min_stock');
         }
 
-        $products = $query->orderBy('name')->paginate(20);
+        $products = $query->orderBy('name')->paginate(100);
 
         return view('livewire.stock-index', compact('products'));
     }

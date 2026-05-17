@@ -45,7 +45,7 @@ class ProductIndex extends Component
             $query->where('is_active', true);
         }
 
-        $products = $query->orderBy('name')->paginate(10);
+        $products = $query->orderBy('name')->paginate(100);
 
         return view('livewire.product-index', compact('products'));
     }

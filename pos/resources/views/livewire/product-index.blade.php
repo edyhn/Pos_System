@@ -24,6 +24,8 @@
         </a>
     </div>
 
+    <div class="mb-2 text-xs text-gray-400">Total: {{ $products->total() }} produk (halaman {{ $products->currentPage() }} dari {{ $products->lastPage() }})</div>
+
     {{-- Filter --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4">
         <div class="p-4 flex flex-wrap items-center gap-3">
