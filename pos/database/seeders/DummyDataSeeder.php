@@ -19,104 +19,121 @@ class DummyDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $store1 = Store::create([
-            'name' => 'Toko Pusat',
-            'slug' => 'toko-pusat',
-            'code' => 'PST',
-            'address' => 'Jl. Merdeka No. 10, Jakarta',
-            'phone' => '021-12345678',
-            'receipt_footer' => 'Terima kasih telah berbelanja di Toko Pusat',
-            'is_active' => true,
-        ]);
+        $store1 = Store::firstOrCreate(
+            ['slug' => 'toko-pusat'],
+            [
+                'name' => 'Toko Pusat',
+                'code' => 'PST',
+                'address' => 'Jl. Merdeka No. 10, Jakarta',
+                'phone' => '021-12345678',
+                'receipt_footer' => 'Terima kasih telah berbelanja di Toko Pusat',
+                'is_active' => true,
+            ]
+        );
 
-        $store2 = Store::create([
-            'name' => 'Toko Cabang',
-            'slug' => 'toko-cabang',
-            'code' => 'CBG',
-            'address' => 'Jl. Sudirman No. 25, Bandung',
-            'phone' => '022-87654321',
-            'receipt_footer' => 'Terima kasih telah berbelanja di Toko Cabang',
-            'is_active' => true,
-        ]);
+        $store2 = Store::firstOrCreate(
+            ['slug' => 'toko-cabang'],
+            [
+                'name' => 'Toko Cabang',
+                'code' => 'CBG',
+                'address' => 'Jl. Sudirman No. 25, Bandung',
+                'phone' => '022-87654321',
+                'receipt_footer' => 'Terima kasih telah berbelanja di Toko Cabang',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'store_id' => $store1->id,
-            'user_id' => 'OWN001',
-            'name' => 'Pemilik Utama',
-            'email' => 'owner@pos.test',
-            'password' => Hash::make('owner123'),
-            'phone' => '081234567890',
-            'role' => 'owner',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'owner@pos.test'],
+            [
+                'store_id' => $store1->id,
+                'user_id' => 'OWN001',
+                'name' => 'Pemilik Utama',
+                'password' => Hash::make('owner123'),
+                'phone' => '081234567890',
+                'role' => 'owner',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'store_id' => $store1->id,
-            'user_id' => 'KSR001',
-            'name' => 'Kasir Pusat',
-            'email' => 'kasir1@pos.test',
-            'password' => Hash::make('kasir123'),
-            'phone' => '081234567891',
-            'role' => 'cashier',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'kasir1@pos.test'],
+            [
+                'store_id' => $store1->id,
+                'user_id' => 'KSR001',
+                'name' => 'Kasir Pusat',
+                'password' => Hash::make('kasir123'),
+                'phone' => '081234567891',
+                'role' => 'cashier',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'store_id' => $store2->id,
-            'user_id' => 'KSR002',
-            'name' => 'Kasir Cabang',
-            'email' => 'kasir2@pos.test',
-            'password' => Hash::make('kasir123'),
-            'phone' => '081234567892',
-            'role' => 'cashier',
-            'is_active' => true,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'kasir2@pos.test'],
+            [
+                'store_id' => $store2->id,
+                'user_id' => 'KSR002',
+                'name' => 'Kasir Cabang',
+                'password' => Hash::make('kasir123'),
+                'phone' => '081234567892',
+                'role' => 'cashier',
+                'is_active' => true,
+            ]
+        );
 
-        User::create([
-            'store_id' => null,
-            'user_id' => 'OWN002',
-            'name' => 'Pemilik Cadangan',
-            'email' => 'owner2@pos.test',
-            'password' => Hash::make('owner123'),
-            'phone' => '081234567893',
-            'role' => 'owner',
-            'is_active' => false,
-        ]);
+        User::firstOrCreate(
+            ['email' => 'owner2@pos.test'],
+            [
+                'store_id' => null,
+                'user_id' => 'OWN002',
+                'name' => 'Pemilik Cadangan',
+                'password' => Hash::make('owner123'),
+                'phone' => '081234567893',
+                'role' => 'owner',
+                'is_active' => false,
+            ]
+        );
 
-        $catPulsa = Category::create([
-            'store_id' => $store1->id,
-            'name' => 'Pulsa & Kuota',
-            'slug' => 'pulsa-dan-kuota',
-            'description' => 'Produk pulsa dan paket data',
-        ]);
+        $catPulsa = Category::firstOrCreate(
+            ['slug' => 'pulsa-dan-kuota', 'store_id' => $store1->id],
+            [
+                'name' => 'Pulsa & Kuota',
+                'description' => 'Produk pulsa dan paket data',
+            ]
+        );
 
-        $catMakanan = Category::create([
-            'store_id' => $store1->id,
-            'name' => 'Makanan Ringan',
-            'slug' => 'makanan-ringan',
-            'description' => 'Camilan dan makanan ringan',
-        ]);
+        $catMakanan = Category::firstOrCreate(
+            ['slug' => 'makanan-ringan', 'store_id' => $store1->id],
+            [
+                'name' => 'Makanan Ringan',
+                'description' => 'Camilan dan makanan ringan',
+            ]
+        );
 
-        $catMinuman = Category::create([
-            'store_id' => $store1->id,
-            'name' => 'Minuman',
-            'slug' => 'minuman',
-            'description' => 'Minuman kemasan dan botol',
-        ]);
+        $catMinuman = Category::firstOrCreate(
+            ['slug' => 'minuman', 'store_id' => $store1->id],
+            [
+                'name' => 'Minuman',
+                'description' => 'Minuman kemasan dan botol',
+            ]
+        );
 
-        $catListrik = Category::create([
-            'store_id' => $store2->id,
-            'name' => 'Token Listrik',
-            'slug' => 'token-listrik',
-            'description' => 'Token listrik PLN',
-        ]);
+        $catListrik = Category::firstOrCreate(
+            ['slug' => 'token-listrik', 'store_id' => $store2->id],
+            [
+                'name' => 'Token Listrik',
+                'description' => 'Token listrik PLN',
+            ]
+        );
 
-        $catPulsa2 = Category::create([
-            'store_id' => $store2->id,
-            'name' => 'Pulsa',
-            'slug' => 'pulsa',
-            'description' => 'Pulsa all operator',
-        ]);
+        $catPulsa2 = Category::firstOrCreate(
+            ['slug' => 'pulsa', 'store_id' => $store2->id],
+            [
+                'name' => 'Pulsa',
+                'description' => 'Pulsa all operator',
+            ]
+        );
 
         $productsStore1 = [
             ['Paket Internet 30 Hari', 'INT-30', 150000, 100000, 100, 10, true, 11, true, 30],
@@ -135,23 +152,24 @@ class DummyDataSeeder extends Seeder
         ];
 
         foreach ($productsStore1 as $p) {
-            Product::create([
-                'store_id' => $store1->id,
-                'category_id' => in_array($p[1], ['MKN-001', 'MKN-002', 'MKN-003']) ? $catMakanan->id : (in_array($p[1], ['MNM-001', 'MNM-002', 'MNM-003']) ? $catMinuman->id : $catPulsa->id),
-                'name' => $p[0],
-                'slug' => str()->slug($p[0]),
-                'sku' => $p[1],
-                'price' => $p[2],
-                'cost_price' => $p[3],
-                'stock' => $p[4],
-                'min_stock' => $p[5],
-                'unit' => 'pcs',
-                'is_taxed' => $p[6],
-                'tax_rate' => $p[7],
-                'is_subscription' => $p[8],
-                'subscription_days' => $p[9] ?: 30,
-                'is_active' => true,
-            ]);
+            Product::firstOrCreate(
+                ['sku' => $p[1], 'store_id' => $store1->id],
+                [
+                    'category_id' => in_array($p[1], ['MKN-001', 'MKN-002', 'MKN-003']) ? $catMakanan->id : (in_array($p[1], ['MNM-001', 'MNM-002', 'MNM-003']) ? $catMinuman->id : $catPulsa->id),
+                    'name' => $p[0],
+                    'slug' => str()->slug($p[0]),
+                    'price' => $p[2],
+                    'cost_price' => $p[3],
+                    'stock' => $p[4],
+                    'min_stock' => $p[5],
+                    'unit' => 'pcs',
+                    'is_taxed' => $p[6],
+                    'tax_rate' => $p[7],
+                    'is_subscription' => $p[8],
+                    'subscription_days' => $p[9] ?: 30,
+                    'is_active' => true,
+                ]
+            );
         }
 
         $productsStore2 = [
@@ -164,113 +182,121 @@ class DummyDataSeeder extends Seeder
         ];
 
         foreach ($productsStore2 as $p) {
-            Product::create([
-                'store_id' => $store2->id,
-                'category_id' => str_starts_with($p[1], 'TKN') ? $catListrik->id : $catPulsa2->id,
-                'name' => $p[0],
-                'slug' => str()->slug($p[0]),
-                'sku' => $p[1],
-                'price' => $p[2],
-                'cost_price' => $p[3],
-                'stock' => $p[4],
-                'min_stock' => $p[5],
-                'unit' => 'pcs',
-                'is_taxed' => $p[6],
-                'tax_rate' => $p[7],
-                'is_subscription' => $p[8],
-                'subscription_days' => $p[9] ?: 30,
-                'is_active' => true,
-            ]);
+            Product::firstOrCreate(
+                ['sku' => $p[1], 'store_id' => $store2->id],
+                [
+                    'category_id' => str_starts_with($p[1], 'TKN') ? $catListrik->id : $catPulsa2->id,
+                    'name' => $p[0],
+                    'slug' => str()->slug($p[0]),
+                    'price' => $p[2],
+                    'cost_price' => $p[3],
+                    'stock' => $p[4],
+                    'min_stock' => $p[5],
+                    'unit' => 'pcs',
+                    'is_taxed' => $p[6],
+                    'tax_rate' => $p[7],
+                    'is_subscription' => $p[8],
+                    'subscription_days' => $p[9] ?: 30,
+                    'is_active' => true,
+                ]
+            );
         }
 
-        $vendor1 = Vendor::create([
-            'store_id' => $store1->id,
-            'name' => 'PT Telkom Indonesia',
-            'contact_person' => 'Budi Santoso',
-            'phone' => '081234567001',
-            'email' => 'budi@telkom.co.id',
-            'address' => 'Jl. Gatot Subroto, Jakarta',
-            'is_active' => true,
-        ]);
+        $vendor1 = Vendor::firstOrCreate(
+            ['email' => 'budi@telkom.co.id'],
+            [
+                'store_id' => $store1->id,
+                'name' => 'PT Telkom Indonesia',
+                'contact_person' => 'Budi Santoso',
+                'phone' => '081234567001',
+                'address' => 'Jl. Gatot Subroto, Jakarta',
+                'is_active' => true,
+            ]
+        );
 
-        $vendor2 = Vendor::create([
-            'store_id' => $store1->id,
-            'name' => 'CV Makanan Enak',
-            'contact_person' => 'Siti Rahayu',
-            'phone' => '081234567002',
-            'email' => 'siti@makananenak.co.id',
-            'address' => 'Jl. Industri No. 5, Tangerang',
-            'is_active' => true,
-        ]);
+        $vendor2 = Vendor::firstOrCreate(
+            ['email' => 'siti@makananenak.co.id'],
+            [
+                'store_id' => $store1->id,
+                'name' => 'CV Makanan Enak',
+                'contact_person' => 'Siti Rahayu',
+                'phone' => '081234567002',
+                'address' => 'Jl. Industri No. 5, Tangerang',
+                'is_active' => true,
+            ]
+        );
 
-        $vendor3 = Vendor::create([
-            'store_id' => $store2->id,
-            'name' => 'PLN',
-            'contact_person' => 'Agus Wijaya',
-            'phone' => '081234567003',
-            'email' => 'agus@pln.co.id',
-            'address' => 'Jl. Listrik No. 1, Bandung',
-            'is_active' => true,
-        ]);
+        $vendor3 = Vendor::firstOrCreate(
+            ['email' => 'agus@pln.co.id'],
+            [
+                'store_id' => $store2->id,
+                'name' => 'PLN',
+                'contact_person' => 'Agus Wijaya',
+                'phone' => '081234567003',
+                'address' => 'Jl. Listrik No. 1, Bandung',
+                'is_active' => true,
+            ]
+        );
 
         $owner1 = User::where('user_id', 'OWN001')->first();
-        $kasir1 = User::where('user_id', 'KSR001')->first();
-        $kasir2 = User::where('user_id', 'KSR002')->first();
 
-        $po1 = PurchaseOrder::create([
-            'store_id' => $store1->id,
-            'vendor_id' => $vendor1->id,
-            'user_id' => $owner1->id,
-            'po_number' => 'PO-20260501-001',
-            'status' => 'received',
-            'notes' => 'PO pulsa bulan Mei',
-        ]);
+        $po1 = PurchaseOrder::firstOrCreate(
+            ['po_number' => 'PO-20260501-001'],
+            [
+                'store_id' => $store1->id,
+                'vendor_id' => $vendor1->id,
+                'user_id' => $owner1->id,
+                'status' => 'received',
+                'notes' => 'PO pulsa bulan Mei',
+            ]
+        );
 
-        $po2 = PurchaseOrder::create([
-            'store_id' => $store1->id,
-            'vendor_id' => $vendor2->id,
-            'user_id' => $owner1->id,
-            'po_number' => 'PO-20260501-002',
-            'status' => 'sent',
-            'notes' => 'PO makanan ringan',
-        ]);
+        $po2 = PurchaseOrder::firstOrCreate(
+            ['po_number' => 'PO-20260501-002'],
+            [
+                'store_id' => $store1->id,
+                'vendor_id' => $vendor2->id,
+                'user_id' => $owner1->id,
+                'status' => 'sent',
+                'notes' => 'PO makanan ringan',
+            ]
+        );
 
         $pulsaProducts = Product::where('store_id', $store1->id)->where('sku', 'PLS-010')->first();
         if ($pulsaProducts) {
-            PoItem::create([
-                'purchase_order_id' => $po1->id,
-                'product_id' => $pulsaProducts->id,
-                'quantity' => 100,
-                'price' => 10000,
-                'subtotal' => 1000000,
-            ]);
+            PoItem::firstOrCreate(
+                ['purchase_order_id' => $po1->id, 'product_id' => $pulsaProducts->id],
+                [
+                    'quantity' => 100,
+                    'price' => 10000,
+                    'subtotal' => 1000000,
+                ]
+            );
         }
 
-        Product::where('store_id', $store1->id)->chunk(5, function ($products) use ($store1, $kasir1, $owner1) {
+        Product::where('store_id', $store1->id)->chunk(5, function ($products) use ($store1, $owner1) {
             foreach ($products as $product) {
-                StockMovement::create([
-                    'store_id' => $store1->id,
-                    'product_id' => $product->id,
-                    'user_id' => $owner1->id,
-                    'type' => 'in',
-                    'quantity' => $product->stock,
-                    'reference_type' => 'initial',
-                    'note' => 'Stok awal',
-                ]);
+                StockMovement::firstOrCreate(
+                    ['store_id' => $store1->id, 'product_id' => $product->id, 'type' => 'in', 'reference_type' => 'initial'],
+                    [
+                        'user_id' => $owner1->id,
+                        'quantity' => $product->stock,
+                        'note' => 'Stok awal',
+                    ]
+                );
             }
         });
 
-        Product::where('store_id', $store2->id)->chunk(5, function ($products) use ($store2, $kasir2, $owner1) {
+        Product::where('store_id', $store2->id)->chunk(5, function ($products) use ($store2, $owner1) {
             foreach ($products as $product) {
-                StockMovement::create([
-                    'store_id' => $store2->id,
-                    'product_id' => $product->id,
-                    'user_id' => $owner1->id,
-                    'type' => 'in',
-                    'quantity' => $product->stock,
-                    'reference_type' => 'initial',
-                    'note' => 'Stok awal',
-                ]);
+                StockMovement::firstOrCreate(
+                    ['store_id' => $store2->id, 'product_id' => $product->id, 'type' => 'in', 'reference_type' => 'initial'],
+                    [
+                        'user_id' => $owner1->id,
+                        'quantity' => $product->stock,
+                        'note' => 'Stok awal',
+                    ]
+                );
             }
         });
 

@@ -15,13 +15,13 @@
         tr:nth-child(even) { background: #F9FAFB; }
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-        .summary { margin-top: 20px; border-top: 2px solid #7C3AED; padding-top: 10px; display: flex; justify-content: space-between; }
-        .summary-box { background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 8px; padding: 12px 20px; text-align: center; flex: 1; margin: 0 5px; }
-        .summary-box .label { font-size: 10px; color: #6B7280; margin: 0; }
-        .summary-box .value { font-size: 16px; font-weight: bold; margin: 5px 0 0; }
-        .summary-box .value.purple { color: #7C3AED; }
-        .summary-box .value.green { color: #059669; }
-        .summary-box .value.blue { color: #3B82F6; }
+        .summary-section { margin-top: 20px; border-top: 2px solid #7C3AED; padding-top: 12px; }
+        .summary-title { font-size: 12px; font-weight: bold; color: #1F2937; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .summary-table { width: 100%; border-collapse: collapse; }
+        .summary-table td { border: none; padding: 5px 8px; font-size: 11px; }
+        .summary-table .label { color: #6B7280; width: 60%; }
+        .summary-table .value { font-weight: bold; color: #1F2937; text-align: right; width: 40%; }
+        .summary-table .divider td { border-bottom: 1px solid #E5E7EB; padding: 0; }
         .footer { text-align: center; margin-top: 30px; color: #9CA3AF; font-size: 9px; }
     </style>
 </head>
@@ -39,19 +39,24 @@
         $totalSales = $transactions->sum('total_amount');
     @endphp
 
-    <div class="summary">
-        <div class="summary-box">
-            <p class="label">Transaksi Kena Pajak</p>
-            <p class="value blue">{{ $totalTrans }}</p>
-        </div>
-        <div class="summary-box">
-            <p class="label">Total Pajak (PPN)</p>
-            <p class="value purple">Rp {{ number_format($totalTax, 0, ',', '.') }}</p>
-        </div>
-        <div class="summary-box">
-            <p class="label">Total Penjualan</p>
-            <p class="value green">Rp {{ number_format($totalSales, 0, ',', '.') }}</p>
-        </div>
+    <div class="summary-section">
+        <h3 class="summary-title">Ringkasan Pajak</h3>
+        <table class="summary-table">
+            <tr>
+                <td class="label">Transaksi Kena Pajak</td>
+                <td class="value">{{ $totalTrans }}</td>
+            </tr>
+            <tr class="divider"><td colspan="2"></td></tr>
+            <tr>
+                <td class="label">Total Pajak (PPN)</td>
+                <td class="value">Rp {{ number_format($totalTax, 0, ',', '.') }}</td>
+            </tr>
+            <tr class="divider"><td colspan="2"></td></tr>
+            <tr>
+                <td class="label">Total Penjualan</td>
+                <td class="value">Rp {{ number_format($totalSales, 0, ',', '.') }}</td>
+            </tr>
+        </table>
     </div>
 
     <table>
